@@ -1,0 +1,244 @@
+{
+  "nav": {
+    "menu": "Menu",
+    "catering": "Catering",
+    "about": "About",
+    "location": "Location",
+    "faq": "FAQ",
+    "blog": "Blog",
+    "order": "Order Now",
+    "language": "Español"
+  },
+  "home": {
+    "hero": {
+      "tagline": "Latin Tropical Street Food",
+      "subtitle": "Cuban roots, modern flavor.",
+      "cta_menu": "View Menu",
+      "cta_catering": "Request Catering"
+    },
+    "hours_section": {
+      "title": "When Can You Find Us?",
+      "days": "Wednesday – Sunday",
+      "hours": "4:00 PM – 10:00 PM",
+      "areas": "Stone Oak · Alamo Heights · Downtown · Southtown"
+    },
+    "menu_preview": {
+      "title": "Fan Favorites",
+      "subtitle": "Flavors you won't forget",
+      "cta": "View Full Menu"
+    },
+    "catering_section": {
+      "badge": "Private Events",
+      "title": "Planning a special event?",
+      "subtitle": "We bring the HOLALA experience to your celebration — weddings, corporate, birthdays and more.",
+      "cta": "Get a Quote"
+    },
+    "about_section": {
+      "badge": "Our Story",
+      "title": "Cuban flavor in the heart of San Antonio",
+      "body": "HOLALA was born from a love of authentic Cuban cuisine and street food vibes. Fresh ingredients, family recipes and lots of tropical flavor — that's what we bring to every event.",
+      "cta": "Learn More"
+    },
+    "social_section": {
+      "title": "Follow Us on Instagram",
+      "handle": "@holalacubanflavor",
+      "cta": "View profile"
+    }
+  },
+  "menu": {
+    "title": "Our Menu",
+    "subtitle": "Cuban roots, modern flavor",
+    "categories": {
+      "all": "All",
+      "mains": "Main Dishes",
+      "sides": "Sides",
+      "drinks": "Drinks",
+      "desserts": "Desserts"
+    },
+    "price_label": "Price",
+    "order_cta": "Order now"
+  },
+  "catering": {
+    "title": "Catering & Events",
+    "subtitle": "We make your event unforgettable",
+    "badge": "Request a Quote",
+    "step1": {
+      "title": "What type of event is it?",
+      "subtitle": "Select the event type and tell us when",
+      "event_types": {
+        "birthday": "Birthday",
+        "corporate": "Corporate",
+        "wedding": "Wedding",
+        "quinces": "Quinceañera",
+        "graduation": "Graduation",
+        "other": "Other"
+      },
+      "date_label": "Event date",
+      "guests_label": "Number of guests (approx.)",
+      "guests_placeholder": "E.g.: 50",
+      "next": "Next"
+    },
+    "step2": {
+      "title": "Tell us more",
+      "name_label": "Full name",
+      "name_placeholder": "Your name",
+      "email_label": "Email address",
+      "email_placeholder": "you@email.com",
+      "phone_label": "Phone",
+      "phone_placeholder": "(210) 000-0000",
+      "budget_label": "Approximate budget",
+      "budget_options": {
+        "under_500": "Under $500",
+        "500_1000": "$500 – $1,000",
+        "1000_2500": "$1,000 – $2,500",
+        "2500_5000": "$2,500 – $5,000",
+        "over_5000": "Over $5,000"
+      },
+      "message_label": "Tell us about your event (optional)",
+      "message_placeholder": "Venue, specific menu, special needs...",
+      "back": "Back",
+      "submit": "Submit Request"
+    },
+    "success": {
+      "title": "Request sent! 🎉",
+      "body": "Thank you for reaching out. We'll get back to you within 24 hours to work out the details.",
+      "phone": "Or call us at 210 975 0176",
+      "cta": "Back to Home"
+    },
+    "info": {
+      "title": "Why choose HOLALA?",
+      "items": [
+        "Customizable menu to your taste",
+        "Fresh, authentic ingredients",
+        "Professional and punctual service",
+        "Transparent pricing, no surprises"
+      ]
+    }
+  },
+  "about": {
+    "title": "Our Story",
+    "badge": "About HOLALA",
+    "hero_text": "We're more than a food truck. We're an experience.",
+    "story": {
+      "title": "Cuban roots, modern flavor",
+      "p1": "HOLALA Cuban Flavor was born from the dream of bringing authentic Cuban cuisine to the streets of San Antonio. Every dish tells a story of family, tradition and tropical flavor.",
+      "p2": "We use fresh ingredients, inherited recipes and modern techniques to create a unique culinary experience — the street vibes of Havana with the Texan heart of San Antonio.",
+      "p3": "We operate Wednesday through Sunday across San Antonio, bringing flavor to Stone Oak, Alamo Heights, Downtown, Southtown and surrounding areas."
+    },
+    "values": {
+      "title": "What defines us",
+      "items": [
+        {
+          "title": "Authenticity",
+          "desc": "Family Cuban recipes we don't compromise for convenience."
+        },
+        {
+          "title": "Freshness",
+          "desc": "Fresh ingredients, cooked to order, every day."
+        },
+        {
+          "title": "Community",
+          "desc": "We're part of San Antonio, we care about every neighborhood we visit."
+        },
+        {
+          "title": "Quality",
+          "desc": "Every dish should exceed your expectations — that's our promise."
+        }
+      ]
+    },
+    "contact": {
+      "title": "Contact Us",
+      "phone": "210 975 0176",
+      "email": "holalacubanflavor@gmail.com",
+      "instagram": "@holalacubanflavor"
+    }
+  },
+  "location": {
+    "title": "Location & Hours",
+    "badge": "Where Are We?",
+    "hours": {
+      "title": "Regular Hours",
+      "schedule": [
+        { "day": "Monday", "hours": "Closed" },
+        { "day": "Tuesday", "hours": "Closed" },
+        { "day": "Wednesday", "hours": "4:00 PM – 10:00 PM" },
+        { "day": "Thursday", "hours": "4:00 PM – 10:00 PM" },
+        { "day": "Friday", "hours": "4:00 PM – 10:00 PM" },
+        { "day": "Saturday", "hours": "4:00 PM – 10:00 PM" },
+        { "day": "Sunday", "hours": "4:00 PM – 10:00 PM" }
+      ]
+    },
+    "areas": {
+      "title": "Areas we cover",
+      "list": [
+        "Stone Oak",
+        "Alamo Heights",
+        "Downtown San Antonio",
+        "Southtown",
+        "Converse",
+        "Universal City",
+        "Leon Valley"
+      ]
+    },
+    "map_label": "San Antonio, Texas",
+    "follow_ig": "Follow us on Instagram for today's exact location",
+    "contact_cta": "Questions? Contact us"
+  },
+  "faq": {
+    "title": "Frequently Asked Questions",
+    "badge": "FAQ",
+    "subtitle": "Everything you need to know about HOLALA Cuban Flavor",
+    "items": [
+      {
+        "q": "When and where can I find the food truck?",
+        "a": "We operate Wednesday through Sunday from 4pm to 10pm around San Antonio. We rotate through Stone Oak, Alamo Heights, Downtown and other areas. For today's exact location, follow us on Instagram @holalacubanflavor."
+      },
+      {
+        "q": "Can I order online?",
+        "a": "Yes, we'll be enabling online ordering soon. For now you can order directly at the truck or contact us for catering events."
+      },
+      {
+        "q": "What payment methods do you accept?",
+        "a": "We accept cash, debit and credit cards (Visa, Mastercard, Amex), Apple Pay and Google Pay. We process payments through Square."
+      },
+      {
+        "q": "Do you have vegetarian options?",
+        "a": "Yes, we have several vegetarian options like yuca with mojo sauce, moros y cristianos (rice & beans), and tostones. Check our menu for all options."
+      },
+      {
+        "q": "How do you handle allergens?",
+        "a": "If you have food allergies, please let us know when ordering. Our staff is trained to help you. Dishes may contain gluten, dairy and tree nuts."
+      },
+      {
+        "q": "Do you do private event catering?",
+        "a": "Absolutely! We offer catering for birthdays, weddings, corporate events, quinceañeras and more. Use our catering form or call us at 210 975 0176 for a quote."
+      },
+      {
+        "q": "How far in advance should I book catering?",
+        "a": "We recommend reaching out at least 2 weeks ahead for small events and 4+ weeks for large events. For peak dates (year-end, summer), the earlier the better."
+      },
+      {
+        "q": "Do you have a fixed menu or does it rotate?",
+        "a": "We have a core menu of Cuban classics available every day, plus daily specials that rotate by season. Follow us on social media to see the specials."
+      }
+    ]
+  },
+  "blog": {
+    "title": "Blog",
+    "badge": "Recipes & Cuban Culture",
+    "subtitle": "Stories, recipes and everything about Cuban culinary culture",
+    "read_more": "Read more",
+    "back": "← Back to Blog",
+    "share": "Share",
+    "related": "Related articles"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Something went wrong. Please try again.",
+    "back_home": "Back to Home",
+    "contact_phone": "210 975 0176",
+    "contact_email": "holalacubanflavor@gmail.com",
+    "instagram": "@holalacubanflavor",
+    "address": "San Antonio, TX"
+  }
+}
