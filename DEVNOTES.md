@@ -22,37 +22,38 @@ npm install <package> --legacy-peer-deps
 
 ---
 
-## SESSION LOG — 2026-05-24 (sesión 2)
+## SESSION LOG — 2026-05-24 (sesión 2) — CIERRE
 
 ### Commits de la sesión
 | Hash | Descripción |
 |------|-------------|
 | `87dc6f3` | fix: replace next-sanity@13 with @sanity/client + add .npmrc |
+| `74b2501` | docs: update DEVNOTES with Vercel deploy fix + env vars checklist |
 
 ### Qué se completó
 
 **Diagnóstico y fix del deploy de Vercel:**
-- Vercel usa `npm ci` (strict mode) → hard-fail por `next-sanity@13.0.3` que requiere `next@^16`
+- Vercel usa `npm ci` (strict mode) → hard-fail ERESOLVE porque `next-sanity@13.0.3` requiere `next@^16`
 - Fix: `next-sanity` → `@sanity/client@7.22.0` (sin peer deps), `.npmrc` con `legacy-peer-deps=true`
-- Deploy READY: `holala-web.vercel.app`
+- Deploy: **READY** → `holala-web.vercel.app` ✅
 
-### Estado actual
+**Env vars configuradas en Vercel:**
+- `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_SANITY_DATASET`
+- Middleware verificado: `/admin/dashboard` → redirige a `/admin/login` ✅
+- Runtime logs: todas las rutas 200, cero errores ✅
+
+### Estado al cerrar sesión
 ```
-✅ Vercel deploy: READY → holala-web.vercel.app
-⚠️  Env vars en Vercel: AÚN NO CONFIGURADAS (catering form falla sin Supabase)
+✅ Código: build limpio, todas las rutas OK
+✅ Supabase: activo (5 tablas, 8 migraciones, RLS hardened)
+✅ Vercel: READY → holala-web.vercel.app
+✅ Env vars en Vercel: configuradas + middleware verificado
+⚠️  ANON_KEY: verificar que sea el JWT completo (no texto "(del .env.local)")
 ⏳ Sanity: proyecto NO creado
 ⏳ DNS Cloudflare: pendiente
+⏳ Google Search Console: pendiente
+⏳ Lighthouse mobile ≥90: pendiente
 ```
-
-### Env vars que hay que agregar en Vercel ahora
-Ir a: https://vercel.com/digisenda-4410s-projects/holala-web/settings/environment-variables
-
-| Variable | Valor |
-|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | `https://oifwxosgmftdplmejhgq.supabase.co` |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | (del .env.local, empieza con eyJhbGci...) |
-| `NEXT_PUBLIC_SITE_URL` | `https://holalacubanflavor.com` |
-| `NEXT_PUBLIC_SANITY_DATASET` | `production` |
 
 Después: Redeploy desde el dashboard de Vercel.
 
