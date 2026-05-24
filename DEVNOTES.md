@@ -20,6 +20,24 @@ npm config set strict-ssl false   # solo una vez para este proyecto
 npm install <package> --legacy-peer-deps
 ```
 
+## Riesgos de migración a Sanity (Sprint 2)
+
+### Blog slugs bilingüe
+Los 3 artículos estáticos usan el mismo slug en español para ambos locales:
+- `/es/blog/historia-del-sandwich-cubano`
+- `/en/blog/historia-del-sandwich-cubano` (URL actualmente = slug español)
+
+Cuando se conecte Sanity, `slug_en` generará slugs en inglés diferentes.
+**Solución:** Agregar en `next.config.mjs → redirects()` los 3 slugs antes de conectar Sanity.
+
+### readTime no existe en schema Sanity
+El schema de `blogPost` no tiene campo `readTime_es`/`readTime_en`.
+Si se quiere mostrar tiempo de lectura desde Sanity, agregar al schema antes de publicar artículos.
+
+### Filtro de posts futuros en GROQ
+La query actual no filtra posts con `publishedAt` en el futuro.
+Agregar `&& dateTime(publishedAt) <= dateTime(now())` antes de publicar posts en Sanity.
+
 ## Env vars requeridas
 
 Copia `.env.local.example` a `.env.local` y completa:
@@ -64,7 +82,9 @@ Copia `.env.local.example` a `.env.local` y completa:
 - [ ] Lighthouse mobile ≥90 (verificar post-deploy)
 
 ### 🗓️ Sprint 2 (días 11-18)
-- [ ] Admin: catering pipeline completo
-- [ ] Email automático (Resend)
+- [ ] Admin: catering pipeline completo (conectar Supabase real)
+- [ ] Email automático (Resend) — agregar al catering form handler
+- [ ] Migrar /api/catering → Supabase Edge Function (evitar límite 10s Vercel Hobby cuando se agregue Resend)
+- [ ] Implementar login admin con Supabase Auth UI en /admin/login
 - [ ] Square hardware + configuración
 - [ ] Square Online Store embed en /menu

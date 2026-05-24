@@ -1,7 +1,8 @@
 // JSON-LD structured data schemas for HOLALA Cuban Flavor
 // https://schema.org
 
-const BASE_URL = 'https://holalacubanflavor.com';
+const BASE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ?? 'https://holalacubanflavor.com';
 
 export const restaurantSchema = {
   '@context': 'https://schema.org',

@@ -18,11 +18,23 @@ export async function POST(req: NextRequest) {
       budget,
       message,
       locale,
+      website, // honeypot — bots fill this in
     } = body;
+
+    // Server-side honeypot check — silently succeed so bots think they got through
+    if (website) {
+      return NextResponse.json({ success: true });
+    }
 
     // Basic validation
     if (!eventType || !eventDate || !guestCount || !name || !email || !phone || !budget) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return NextResponse.json({ error: 'Invalid email address' }, { status: 400 });
     }
 
     // Check Supabase env vars
