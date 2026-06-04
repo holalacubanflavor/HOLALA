@@ -3,7 +3,7 @@
 
 // Menu items — all active, ordered by category
 export const MENU_ITEMS_QUERY = `
-  *[_type == "menuItem" && isActive == true] | order(category asc, name_es asc) {
+  *[_type == "menuItem" && isActive != false] | order(category asc, name_es asc) {
     _id,
     name_es,
     name_en,

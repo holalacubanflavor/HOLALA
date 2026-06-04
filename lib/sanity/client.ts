@@ -20,7 +20,7 @@ export function getSanityClient(): SanityClient | null {
       projectId: projectId!,
       dataset,
       apiVersion,
-      useCdn: process.env.NODE_ENV === 'production',
+      useCdn: false,
     });
   }
   return _client;

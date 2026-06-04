@@ -1,38 +1,47 @@
-'use client';
+import { getTranslations } from 'next-intl/server';
+import { getSanityClient } from '@/lib/sanity/client';
+import { MENU_ITEMS_QUERY } from '@/lib/sanity/queries';
+import { menuItems as staticMenuItems } from '@/lib/data/menu';
+import MenuGrid, { type MenuItemData, type MenuCategory } from '@/components/menu/MenuGrid';
 
-import { useState } from 'react';
-import { useTranslations, useLocale } from 'next-intl';
-import { menuItems, type MenuCategory } from '@/lib/data/menu';
-import { cn } from '@/lib/utils';
-import { Leaf } from 'lucide-react';
+// Revalidate every 30 min as fallback if the Sanity webhook fails to trigger a deploy
+export const revalidate = 1800;
 
-type CategoryFilter = MenuCategory | 'all';
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'menu' });
+  return { title: t('title') };
+}
 
-export default function MenuPage() {
-  const t = useTranslations('menu');
-  const locale = useLocale();
-  const [activeCategory, setActiveCategory] = useState<CategoryFilter>('all');
+async function fetchMenuItems(): Promise<MenuItemData[]> {
+  const client = getSanityClient();
+  if (client) {
+    try {
+      const items = await client.fetch<MenuItemData[]>(MENU_ITEMS_QUERY);
+      if (items && items.length > 0) return items;
+    } catch {
+      // Sanity unavailable — fall through to static data
+    }
+  }
 
-  const categories: { key: CategoryFilter; label: string }[] = [
-    { key: 'all', label: t('categories.all') },
-    { key: 'mains', label: t('categories.mains') },
-    { key: 'sides', label: t('categories.sides') },
-    { key: 'drinks', label: t('categories.drinks') },
-    { key: 'desserts', label: t('categories.desserts') },
-  ];
+  return staticMenuItems.map((item) => ({
+    _id: item.id,
+    name_es: item.name_es,
+    name_en: item.name_en,
+    description_es: item.description_es,
+    description_en: item.description_en,
+    price: item.price,
+    category: item.category as MenuCategory,
+    isPopular: item.isPopular ?? false,
+    isVegetarian: item.isVegetarian ?? false,
+    imageUrl: null,
+  }));
+}
 
-  const filtered =
-    activeCategory === 'all'
-      ? menuItems
-      : menuItems.filter((item) => item.category === activeCategory);
-
-  const categoryEmojis: Record<CategoryFilter, string> = {
-    all: '🍽️',
-    mains: '🥘',
-    sides: '🍟',
-    drinks: '🥤',
-    desserts: '🍮',
-  };
+export default async function MenuPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'menu' });
+  const items = await fetchMenuItems();
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -47,62 +56,7 @@ export default function MenuPage() {
         <p className="text-muted-foreground text-lg">{t('subtitle')}</p>
       </div>
 
-      {/* Category filter tabs */}
-      <div className="flex flex-wrap justify-center gap-2 mb-10">
-        {categories.map(({ key, label }) => (
-          <button
-            key={key}
-            onClick={() => setActiveCategory(key)}
-            className={cn(
-              'inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-sm font-medium transition-all',
-              activeCategory === key
-                ? 'bg-espresso text-cream shadow-sm'
-                : 'bg-white border border-border text-espresso hover:border-teal hover:text-teal'
-            )}
-          >
-            <span>{categoryEmojis[key]}</span>
-            {label}
-          </button>
-        ))}
-      </div>
-
-      {/* Menu grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        {filtered.map((item) => (
-          <div
-            key={item.id}
-            className="bg-white rounded-2xl p-5 border border-border hover:shadow-md transition-shadow flex flex-col"
-          >
-            <div className="flex items-start justify-between gap-3 mb-3">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 flex-wrap mb-1">
-                  <h3 className="font-display font-semibold text-espresso text-lg leading-tight">
-                    {locale === 'es' ? item.name_es : item.name_en}
-                  </h3>
-                  {item.isVegetarian && (
-                    <span className="inline-flex items-center gap-1 text-green text-xs font-medium">
-                      <Leaf size={12} />V
-                    </span>
-                  )}
-                </div>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {locale === 'es' ? item.description_es : item.description_en}
-                </p>
-              </div>
-            </div>
-            <div className="mt-auto pt-3 border-t border-border/60 flex items-center justify-between">
-              <span className="text-teal font-bold text-xl">
-                ${item.price.toFixed(2)}
-              </span>
-              {item.isPopular && (
-                <span className="bg-orange/10 text-orange text-xs font-semibold px-2.5 py-1 rounded-full">
-                  Popular
-                </span>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
+      <MenuGrid items={items} />
 
       {/* Order note */}
       <div className="mt-12 text-center bg-teal/5 border border-teal/20 rounded-2xl p-6">
