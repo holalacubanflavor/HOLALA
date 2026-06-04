@@ -22,6 +22,79 @@ npm install <package> --legacy-peer-deps
 
 ---
 
+## SESSION LOG — 2026-06-03 (sesión 3) — CIERRE
+
+### Commits de la sesión
+| Hash | Descripción |
+|------|-------------|
+| `5594c0c` | feat: connect menu to Sanity CMS with live revalidation |
+
+### Qué se completó
+
+**Sanity CMS — 100% operativo:**
+- Proyecto creado en sanity.io: ID `d082imwm`, nombre `holala-cuban-flavor`
+- 3 schemas: `menuItem`, `blogPost`, `scheduleItem` (horarios del truck)
+- `sanity.config.ts` + `sanity.cli.ts` creados
+- Studio desplegado en `https://holala-cuban-flavor.sanity.studio/`
+- Dueño puede editar menú/blog/horarios desde esa URL sin código
+
+**Integración Next.js ↔ Sanity:**
+- `/menu` convertida de `'use client'` + datos estáticos → Server Component + Sanity fetch
+- `components/menu/MenuGrid.tsx` — client component con filtro por categoría
+- Fallback automático a datos estáticos si Sanity no tiene items
+- ISR 30 min (`export const revalidate = 1800`) como seguro
+- Fix: query usa `isActive != false` (maneja null en items nuevos)
+- Fix: `useCdn: false` para datos siempre frescos en build
+
+**Webhook Sanity → revalidación automática:**
+- `/api/revalidate` endpoint con secret guard (`SANITY_REVALIDATE_SECRET`)
+- Webhook creado via Sanity Management API: ID `EziiJqtJsV25g0kp`
+- Trigger: create/update/delete en menuItem, blogPost, scheduleItem
+- URL destino: `https://holala-web.vercel.app/api/revalidate?secret=holala-sanity-2026`
+- Flujo: dueño publica en Studio → webhook → página actualizada en segundos
+
+**Env vars en Vercel (agregadas esta sesión):**
+- `NEXT_PUBLIC_SANITY_PROJECT_ID=d082imwm`
+- `SANITY_REVALIDATE_SECRET=holala-sanity-2026`
+
+**React 18 → 19:**
+- Requerido por Sanity v5. Actualizado con `--legacy-peer-deps`. Build limpio.
+
+### Estado al cerrar sesión
+```
+✅ Código: build limpio, todas las rutas OK
+✅ Supabase: activo (5 tablas, 8 migraciones, RLS hardened)
+✅ Vercel: READY → holala-web.vercel.app
+✅ Sanity Studio: holala-cuban-flavor.sanity.studio (login requerido)
+✅ /menu conectado a Sanity — verificado en producción
+✅ Webhook Sanity→web configurado (ID: EziiJqtJsV25g0kp)
+⚠️  Home page /menu preview: aún usa datos estáticos (lib/data/menu.ts)
+    → conectar a Sanity cuando el dueño agregue el menú real
+⚠️  Blog: aún usa posts estáticos hardcodeados
+    → conectar a Sanity en próxima sesión o cuando haya posts reales
+⏳ DNS Cloudflare: pendiente (holalacubanflavor.com → Vercel)
+⏳ Admin login Supabase Auth UI: pendiente (Sprint 2)
+⏳ Square webhook Edge Function: pendiente (Sprint 2)
+⏳ Google Search Console: pendiente post-DNS
+⏳ Lighthouse mobile ≥90: pendiente post-DNS
+```
+
+### Pendiente inmediato antes del lanzamiento
+1. **DNS Cloudflare** — `holalacubanflavor.com` → Vercel (CNAME `cname.vercel-dns.com`)
+2. **Dueño carga menú real** en Sanity Studio → avisarme para limpiar datos estáticos
+3. **Home page** → conectar a Sanity (misma sesión que #2)
+
+### Sanity — Referencia rápida
+| Campo | Valor |
+|-------|-------|
+| Project ID | `d082imwm` |
+| Dataset | `production` |
+| Studio URL | `https://holala-cuban-flavor.sanity.studio/` |
+| Webhook ID | `EziiJqtJsV25g0kp` |
+| Revalidate secret | `holala-sanity-2026` (en Vercel env vars) |
+
+---
+
 ## SESSION LOG — 2026-05-24 (sesión 2) — CIERRE
 
 ### Commits de la sesión
