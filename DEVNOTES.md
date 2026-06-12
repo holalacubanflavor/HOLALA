@@ -22,6 +22,44 @@ npm install <package> --legacy-peer-deps
 
 ---
 
+## SESSION LOG — 2026-06-12 (sesión 4)
+
+### Qué se completó
+
+**Square — scaffold de integración (Sprint 2):**
+- Creado `supabase/functions/square-webhook/index.ts` — Edge Function (Deno) que:
+  - Valida firma HMAC-SHA256 (`x-square-hmacsha256-signature`) con `SQUARE_WEBHOOK_SIG_KEY`
+  - Escucha `payment.updated` con `status=COMPLETED`
+  - Llama a Square Orders API (`/v2/orders/{id}`) para obtener line items
+  - Hace upsert idempotente en `sales` (por `square_order_id`) e inserta `sale_items`
+  - Cruza `line_items.catalog_object_id` con `products.square_catalog_id` para `product_id`
+- Documentadas todas las credenciales Square requeridas en `.env.local.example`
+
+**Datos reales obtenidos vía Square MCP (cuenta ya conectada):**
+| Campo | Valor |
+|-------|-------|
+| Merchant | Holala Cuban Flavors |
+| Merchant ID | `MLTW1B91M2RC4` |
+| Location ID (main) | `LHDV14TEF3QMK` |
+| País / Moneda | US / USD |
+
+### Pendiente — pasos manuales para activar el webhook
+1. **Reanudar proyecto Supabase** `holala-web` (`oifwxosgmftdplmejhgq`) — actualmente `INACTIVE` (pausado por inactividad, plan free)
+2. **Desplegar la función:** `supabase functions deploy square-webhook --project-ref oifwxosgmftdplmejhgq`
+3. **Configurar secrets:**
+   ```bash
+   supabase secrets set SQUARE_ACCESS_TOKEN=... SQUARE_ENVIRONMENT=sandbox \
+     SQUARE_WEBHOOK_SIG_KEY=... \
+     SQUARE_WEBHOOK_NOTIFICATION_URL=https://oifwxosgmftdplmejhgq.supabase.co/functions/v1/square-webhook
+   ```
+4. **Crear la suscripción de webhook en Square Developer Dashboard** (la conexión MCP actual NO tiene scope `DEVELOPER_APPLICATION_WEBHOOKS_READ`/WRITE, así que no se puede crear vía API):
+   - Event type: `payment.updated`
+   - Notification URL: `https://oifwxosgmftdplmejhgq.supabase.co/functions/v1/square-webhook`
+   - Copiar el "Signature key" generado → usarlo como `SQUARE_WEBHOOK_SIG_KEY`
+5. Probar con "Test webhook" desde Square Developer Console o `supabase functions serve square-webhook` + ngrok
+
+---
+
 ## SESSION LOG — 2026-06-03 (sesión 3) — CIERRE
 
 ### Commits de la sesión
