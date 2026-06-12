@@ -43,20 +43,25 @@ npm install <package> --legacy-peer-deps
 | Location ID (main) | `LHDV14TEF3QMK` |
 | País / Moneda | US / USD |
 
+### ✅ Hecho en esta sesión (vía MCP)
+1. **Proyecto Supabase reanudado** — `holala-web` (`oifwxosgmftdplmejhgq`) estaba `INACTIVE`, se ejecutó `restore_project` (status → `COMING_UP`/activo)
+2. **Edge Function desplegada** — `square-webhook` v1, status `ACTIVE`, `verify_jwt=false` (requerido: Square llama sin JWT de Supabase; la función valida su propia firma HMAC)
+   - URL: `https://oifwxosgmftdplmejhgq.supabase.co/functions/v1/square-webhook`
+3. `get_advisors` (security): sin warnings nuevos
+
 ### Pendiente — pasos manuales para activar el webhook
-1. **Reanudar proyecto Supabase** `holala-web` (`oifwxosgmftdplmejhgq`) — actualmente `INACTIVE` (pausado por inactividad, plan free)
-2. **Desplegar la función:** `supabase functions deploy square-webhook --project-ref oifwxosgmftdplmejhgq`
-3. **Configurar secrets:**
+1. **Configurar secrets** (no se puede hacer vía MCP, requiere Supabase CLI o Dashboard → Edge Functions → Secrets):
    ```bash
-   supabase secrets set SQUARE_ACCESS_TOKEN=... SQUARE_ENVIRONMENT=sandbox \
+   supabase secrets set --project-ref oifwxosgmftdplmejhgq \
+     SQUARE_ACCESS_TOKEN=... SQUARE_ENVIRONMENT=sandbox \
      SQUARE_WEBHOOK_SIG_KEY=... \
      SQUARE_WEBHOOK_NOTIFICATION_URL=https://oifwxosgmftdplmejhgq.supabase.co/functions/v1/square-webhook
    ```
-4. **Crear la suscripción de webhook en Square Developer Dashboard** (la conexión MCP actual NO tiene scope `DEVELOPER_APPLICATION_WEBHOOKS_READ`/WRITE, así que no se puede crear vía API):
+2. **Crear la suscripción de webhook en Square Developer Dashboard** (la conexión MCP actual NO tiene scope `DEVELOPER_APPLICATION_WEBHOOKS_READ`/WRITE, así que no se puede crear vía API):
    - Event type: `payment.updated`
    - Notification URL: `https://oifwxosgmftdplmejhgq.supabase.co/functions/v1/square-webhook`
-   - Copiar el "Signature key" generado → usarlo como `SQUARE_WEBHOOK_SIG_KEY`
-5. Probar con "Test webhook" desde Square Developer Console o `supabase functions serve square-webhook` + ngrok
+   - Copiar el "Signature key" generado → usarlo como `SQUARE_WEBHOOK_SIG_KEY` (paso 1)
+3. Probar con "Test webhook" desde Square Developer Console
 
 ---
 
