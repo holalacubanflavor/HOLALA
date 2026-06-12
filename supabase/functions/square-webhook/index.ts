@@ -29,6 +29,15 @@ const supabase = createClient(
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
 );
 
+function timingSafeEqual(a: Uint8Array, b: Uint8Array): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) {
+    diff |= a[i] ^ b[i];
+  }
+  return diff === 0;
+}
+
 async function isValidSignature(rawBody: string, signature: string | null): Promise<boolean> {
   if (!signature || !SQUARE_WEBHOOK_SIG_KEY || !SQUARE_WEBHOOK_NOTIFICATION_URL) return false;
 
@@ -39,13 +48,23 @@ async function isValidSignature(rawBody: string, signature: string | null): Prom
     false,
     ["sign"],
   );
-  const digest = await crypto.subtle.sign(
-    "HMAC",
-    key,
-    new TextEncoder().encode(SQUARE_WEBHOOK_NOTIFICATION_URL + rawBody),
+  const digest = new Uint8Array(
+    await crypto.subtle.sign(
+      "HMAC",
+      key,
+      new TextEncoder().encode(SQUARE_WEBHOOK_NOTIFICATION_URL + rawBody),
+    ),
   );
-  const expected = btoa(String.fromCharCode(...new Uint8Array(digest)));
-  return expected === signature;
+
+  let received: Uint8Array;
+  try {
+    received = Uint8Array.from(atob(signature), (c) => c.charCodeAt(0));
+  } catch {
+    return false;
+  }
+
+  // Constant-time comparison to avoid leaking byte-match info via response timing.
+  return timingSafeEqual(digest, received);
 }
 
 async function fetchOrder(orderId: string) {
@@ -64,6 +83,14 @@ async function fetchOrder(orderId: string) {
 
 function money(amountMoney?: { amount?: number }): number {
   return (amountMoney?.amount ?? 0) / 100;
+}
+
+// sale_items.quantity is INT CHECK > 0. Square sends quantity as a decimal
+// string (e.g. weighted items use "1.5"), so round to the nearest valid int
+// instead of truncating, and fall back to 1 for non-positive/invalid values.
+function parseQuantity(raw?: string): number {
+  const parsed = Math.round(parseFloat(raw ?? "1"));
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
 }
 
 Deno.serve(async (req) => {
@@ -142,7 +169,7 @@ Deno.serve(async (req) => {
           : null,
         square_item_id: item.catalog_object_id ?? null,
         item_name: item.name ?? "Unknown item",
-        quantity: parseInt(item.quantity ?? "1", 10) || 1,
+        quantity: parseQuantity(item.quantity),
         unit_price: money(item.base_price_money),
         total_price: money(item.total_money),
       }));
