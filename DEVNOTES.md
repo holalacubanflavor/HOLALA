@@ -128,6 +128,13 @@ Con DNS + GSC + Lighthouse ≥90 cerrados, **Sprint 1 está 100% completo**. Ver
 - `parseQuantity`: redondea `line_item.quantity` (string decimal de Square, ej. items por peso) en vez de truncar con `parseInt`, y cae a `1` si el resultado es inválido/≤0 para cumplir `sale_items.quantity CHECK > 0`
 - Re-desplegado: `square-webhook` v2, status `ACTIVE`
 
+**Fixes de code review automatizado (Codex, post-merge de PR #1 → v3 del deploy):**
+- Reparación de `sale_items` en reintentos: si `sales` upsert no inserta (orden ya existía por `ignoreDuplicates`), ahora se busca el `id` existente vía `square_order_id` y se usa esa `saleId` — antes un reintento que falló tras el upsert nunca insertaba los `sale_items`
+- Se agrega chequeo de `existingItemCount` en `sale_items` antes de insertar, para que ese camino de reparación sea idempotente (no duplica items si ya se insertaron)
+- `productsError` ahora se captura y lanza (antes se ignoraba silenciosamente si el `.in("square_catalog_id", ...)` fallaba)
+- `supabase/migrations/001_products.sql`: comentario de `square_catalog_id` aclarado — debe ser el id de **CatalogItemVariation**, no el de CatalogItem padre, para que el cruce con `line_items[].catalog_object_id` funcione
+- Re-desplegado: `square-webhook` v3, status `ACTIVE`
+
 ### 🔴 BLOQUEADO — secrets del Edge Function (acción manual del owner)
 No se pudo configurar `supabase secrets set` desde esta sesión:
 - El MCP de Supabase no tiene herramienta para escribir secrets (solo deploy/lectura)
@@ -153,7 +160,9 @@ No se pudo configurar `supabase secrets set` desde esta sesión:
 
 ### Estado al cerrar sesión
 ```
-✅ Edge Function square-webhook: código v2 (HMAC timing-safe + quantity fix), desplegada y ACTIVE
+✅ Edge Function square-webhook: código v3 (HMAC timing-safe + quantity fix +
+   reparación idempotente de sale_items en reintentos + productsError handling),
+   desplegada y ACTIVE
 ✅ Proyecto Supabase holala-web: reanudado (estaba INACTIVE)
 ✅ Credenciales Square documentadas en .env.local.example
 ⏳ Secrets del Edge Function: NO configurados — requiere acción manual del owner (ver bloque arriba)
@@ -161,6 +170,12 @@ No se pudo configurar `supabase secrets set` desde esta sesión:
 ⏳ Square hardware + configuración: pendiente
 ⏳ Square Online Store embed en /menu: pendiente
 ```
+
+> Nota: PR #1 (mergeado a `main`) incluye el código hasta v2. Los fixes de v3
+> (arriba) se commitearon en `claude/mcp-squarre-access-3avb2s` después del merge,
+> en respuesta a comentarios automáticos de Codex sobre el diff de PR #1. Quedan
+> en la rama pendientes de un nuevo PR — no se abrió uno automáticamente por
+> instrucción explícita de no reabrir/recrear PR para el mismo cambio.
 
 ---
 

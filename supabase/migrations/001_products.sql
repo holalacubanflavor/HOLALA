@@ -3,7 +3,9 @@
 
 CREATE TABLE IF NOT EXISTS products (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  square_catalog_id TEXT UNIQUE,            -- Square catalog item ID for sync
+  -- Square CatalogItemVariation id (NOT the parent CatalogItem id) — must
+  -- match order.line_items[].catalog_object_id for square-webhook to link sales
+  square_catalog_id TEXT UNIQUE,
   name_es TEXT NOT NULL,
   name_en TEXT NOT NULL,
   description_es TEXT,
