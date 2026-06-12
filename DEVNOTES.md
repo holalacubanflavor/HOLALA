@@ -22,6 +22,74 @@ npm install <package> --legacy-peer-deps
 
 ---
 
+## SESSION LOG — 2026-06-12 (sesión 4)
+
+### Qué se completó
+
+**Square — scaffold de integración (Sprint 2):**
+- Creado `supabase/functions/square-webhook/index.ts` — Edge Function (Deno) que:
+  - Valida firma HMAC-SHA256 (`x-square-hmacsha256-signature`) con `SQUARE_WEBHOOK_SIG_KEY`
+  - Escucha `payment.updated` con `status=COMPLETED`
+  - Llama a Square Orders API (`/v2/orders/{id}`) para obtener line items
+  - Hace upsert idempotente en `sales` (por `square_order_id`) e inserta `sale_items`
+  - Cruza `line_items.catalog_object_id` con `products.square_catalog_id` para `product_id`
+- Documentadas todas las credenciales Square requeridas en `.env.local.example`
+
+**Datos reales obtenidos vía Square MCP (cuenta ya conectada):**
+| Campo | Valor |
+|-------|-------|
+| Merchant | Holala Cuban Flavors |
+| Merchant ID | `MLTW1B91M2RC4` |
+| Location ID (main) | `LHDV14TEF3QMK` |
+| País / Moneda | US / USD |
+
+### ✅ Hecho en esta sesión (vía MCP)
+1. **Proyecto Supabase reanudado** — `holala-web` (`oifwxosgmftdplmejhgq`) estaba `INACTIVE`, se ejecutó `restore_project` (status → `COMING_UP`/activo)
+2. **Edge Function desplegada** — `square-webhook` v1, status `ACTIVE`, `verify_jwt=false` (requerido: Square llama sin JWT de Supabase; la función valida su propia firma HMAC)
+   - URL: `https://oifwxosgmftdplmejhgq.supabase.co/functions/v1/square-webhook`
+3. `get_advisors` (security): sin warnings nuevos
+
+**Fixes de code review (v2 del deploy):**
+- `isValidSignature`: comparación de la firma HMAC ahora es timing-safe (decodifica a bytes + `timingSafeEqual` byte a byte) en vez de `===` sobre strings
+- `parseQuantity`: redondea `line_item.quantity` (string decimal de Square, ej. items por peso) en vez de truncar con `parseInt`, y cae a `1` si el resultado es inválido/≤0 para cumplir `sale_items.quantity CHECK > 0`
+- Re-desplegado: `square-webhook` v2, status `ACTIVE`
+
+### 🔴 BLOQUEADO — secrets del Edge Function (acción manual del owner)
+No se pudo configurar `supabase secrets set` desde esta sesión:
+- El MCP de Supabase no tiene herramienta para escribir secrets (solo deploy/lectura)
+- `SQUARE_ACCESS_TOKEN`: el MCP de Square no expone el token OAuth crudo
+- `SQUARE_WEBHOOK_SIG_KEY`: no existe aún — se genera al crear la webhook subscription en Square, y el MCP de Square no tiene el scope `DEVELOPER_APPLICATION_WEBHOOKS_READ`/WRITE para crearla vía API
+
+**Pasos manuales pendientes (en este orden):**
+1. Square Developer Dashboard → Webhooks → Subscriptions → Add subscription:
+   - Event type: `payment.updated`
+   - Notification URL: `https://oifwxosgmftdplmejhgq.supabase.co/functions/v1/square-webhook`
+   - Copiar el "Signature key" generado
+2. Square Developer Dashboard → Apps → [app] → Credentials → copiar Access Token (sandbox o production)
+3. Configurar secrets:
+   ```bash
+   supabase secrets set --project-ref oifwxosgmftdplmejhgq \
+     SQUARE_ACCESS_TOKEN=<del paso 2> \
+     SQUARE_ENVIRONMENT=sandbox \
+     SQUARE_WEBHOOK_SIG_KEY=<del paso 1> \
+     SQUARE_WEBHOOK_NOTIFICATION_URL=https://oifwxosgmftdplmejhgq.supabase.co/functions/v1/square-webhook
+   ```
+4. Probar con "Test webhook" desde Square Developer Console
+5. Verificar filas nuevas en `sales`/`sale_items` y revisar `get_logs(edge-function)` si falla
+
+### Estado al cerrar sesión
+```
+✅ Edge Function square-webhook: código v2 (HMAC timing-safe + quantity fix), desplegada y ACTIVE
+✅ Proyecto Supabase holala-web: reanudado (estaba INACTIVE)
+✅ Credenciales Square documentadas en .env.local.example
+⏳ Secrets del Edge Function: NO configurados — requiere acción manual del owner (ver bloque arriba)
+⏳ Webhook subscription en Square: NO creada — requiere Square Developer Dashboard
+⏳ Square hardware + configuración: pendiente
+⏳ Square Online Store embed en /menu: pendiente
+```
+
+---
+
 ## SESSION LOG — 2026-06-03 (sesión 3) — CIERRE
 
 ### Commits de la sesión
@@ -74,7 +142,7 @@ npm install <package> --legacy-peer-deps
     → conectar a Sanity en próxima sesión o cuando haya posts reales
 ⏳ DNS Cloudflare: pendiente (holalacubanflavor.com → Vercel)
 ⏳ Admin login Supabase Auth UI: pendiente (Sprint 2)
-⏳ Square webhook Edge Function: pendiente (Sprint 2)
+✅ Square webhook Edge Function: desplegada (ACTIVE) — secrets + webhook subscription pendientes (ver sesión 4)
 ⏳ Google Search Console: pendiente post-DNS
 ⏳ Lighthouse mobile ≥90: pendiente post-DNS
 ```
@@ -292,5 +360,6 @@ Tablas activas: `products`, `sales`, `sale_items`, `customers`, `catering_leads`
 - [ ] Implementar login admin con Supabase Auth UI en /admin/login
 - [ ] Email automático (Resend) — agregar al catering form handler
 - [ ] Migrar /api/catering → Supabase Edge Function (evitar límite 10s Vercel Hobby cuando se agregue Resend)
+- [x] Square webhook Edge Function — código desplegado (ACTIVE); falta crear webhook subscription en Square Dashboard + `supabase secrets set` (ver sesión 4)
 - [ ] Square hardware + configuración
 - [ ] Square Online Store embed en /menu
