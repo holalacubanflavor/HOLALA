@@ -86,7 +86,7 @@ export default async function FaqPage({ params }: Props) {
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12">
         {/* Header */}
         <div className="text-center mb-10">
-          <span className="inline-block bg-teal/10 text-teal text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-4">
+          <span className="inline-block bg-teal/10 text-teal-dark text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-4">
             {t('badge')}
           </span>
           <h1 className="font-display text-4xl sm:text-5xl font-bold text-espresso mb-3">

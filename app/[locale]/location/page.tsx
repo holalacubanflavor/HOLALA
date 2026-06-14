@@ -93,7 +93,7 @@ export default function LocationPage() {
               {areas.map((area) => (
                 <span
                   key={area}
-                  className="bg-teal/10 text-teal text-sm font-medium px-3 py-1.5 rounded-full"
+                  className="bg-teal/10 text-teal-dark text-sm font-medium px-3 py-1.5 rounded-full"
                 >
                   {area}
                 </span>

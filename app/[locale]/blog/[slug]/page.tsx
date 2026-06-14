@@ -322,7 +322,7 @@ export default async function BlogPostPage({ params }: Props) {
       </Link>
 
       {/* Category */}
-      <span className="inline-block bg-teal/10 text-teal text-xs font-semibold px-2.5 py-1 rounded-full mb-4 uppercase tracking-wide">
+      <span className="inline-block bg-teal/10 text-teal-dark text-xs font-semibold px-2.5 py-1 rounded-full mb-4 uppercase tracking-wide">
         {post.category}
       </span>
 

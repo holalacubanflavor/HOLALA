@@ -109,11 +109,11 @@ export default function Footer() {
 
       {/* Bottom bar */}
       <div className="border-t border-espresso-light">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-cream/40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-cream/60">
           <span>© {new Date().getFullYear()} HOLALA Cuban Flavor LLC. All rights reserved.</span>
           <div className="flex items-center gap-4">
-            <Link href="/" locale="es" className="hover:text-cream/60 transition-colors">Español</Link>
-            <Link href="/" locale="en" className="hover:text-cream/60 transition-colors">English</Link>
+            <Link href="/" locale="es" className="hover:text-cream transition-colors">Español</Link>
+            <Link href="/" locale="en" className="hover:text-cream transition-colors">English</Link>
           </div>
         </div>
       </div>

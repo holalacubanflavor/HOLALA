@@ -62,7 +62,7 @@ const staticPosts = [
 ];
 
 const categoryColors: Record<string, string> = {
-  historia: 'bg-teal/10 text-teal',
+  historia: 'bg-teal/10 text-teal-dark',
   recetas: 'bg-orange/10 text-orange',
   cultura: 'bg-green/10 text-green',
 };
