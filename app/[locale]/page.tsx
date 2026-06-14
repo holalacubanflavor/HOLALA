@@ -85,7 +85,7 @@ function Hero() {
         </div>
 
         {/* Trust indicators */}
-        <div className="flex items-center justify-center gap-4 mt-10 text-cream/40 text-sm">
+        <div className="flex items-center justify-center gap-4 mt-10 text-cream/60 text-sm">
           <span className="flex items-center gap-1">
             <Star size={14} className="fill-orange text-orange" />
             <Star size={14} className="fill-orange text-orange" />

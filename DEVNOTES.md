@@ -67,8 +67,16 @@ npm install <package> --legacy-peer-deps
 **PR creado (pendiente review/merge del owner):**
 - Branch `fix/canonical-www-a11y-contrast` → **PR #2**: https://github.com/Digisenda/holala-web/pull/2
 
-### Deuda pendiente / flagged (no resuelto esta sesión)
-- `app/[locale]/blog/page.tsx`: `categoryColors.recetas: 'bg-orange/10 text-orange'` y `cultura: 'bg-green/10 text-green'` tienen el mismo problema de contraste que `historia` (ya arreglado). No verificado/arreglado — aplicar la misma metodología (`text-X` → `text-X-dark`, o invertir a chip oscuro en el caso de `orange`).
+**Fix 3 — Contraste adicional (encontrado en /review de PR #2, mismo branch):**
+- `app/[locale]/blog/page.tsx`:
+  - `categoryColors.recetas: 'bg-orange/10 text-orange'` (2.13:1) → `'bg-orange/10 text-espresso'` (14.0:1)
+  - `categoryColors.cultura: 'bg-green/10 text-green'` (~4.39:1) → `'bg-green/10 text-green-dark'` (6.11:1), mismo patrón que "historia"
+  - Badge de header (`{t('badge')}`): `bg-orange/10 text-orange` (2.13:1) → `bg-espresso text-orange` (5.97:1)
+- `app/[locale]/about/page.tsx`: badge hero `bg-orange/20 text-orange` (2.13:1) → `bg-orange text-espresso` (5.97:1)
+- `app/[locale]/catering/page.tsx`: badge "Solicitar Cotización" `bg-orange/20 text-orange` (2.13:1) → `bg-orange text-espresso` (5.97:1)
+- `app/[locale]/location/page.tsx`: badge hero `bg-teal/20 text-teal` (~3.2:1) → `bg-teal/20 text-cream` (12.9:1)
+- `app/[locale]/page.tsx`: Hero "trust indicators" (5 estrellas + "5.0 · San Antonio, TX") `text-cream/40` (3.55:1) → `text-cream/60` (6.32:1), mismo fix ya aplicado al Footer
+- Confirmado: naranja (#F97316/#ea6c0a) no alcanza 4.5:1 en ninguna variante "chip claro" (`text-orange`/`text-orange-dark` sobre `bg-orange/10` o `/20`) — siempre invertir a chip oscuro (`bg-orange text-espresso` o `bg-espresso text-orange`, ambos ≈5.97:1) o usar texto neutro oscuro (`text-espresso`, 14.0:1).
 
 ### Estado al cerrar sesión
 ```
@@ -76,10 +84,10 @@ npm install <package> --legacy-peer-deps
 ✅ Google Search Console: dominio verificado
 ✅ Lighthouse mobile: ≥90 en todas las categorías (objetivo Sprint 1 cumplido)
 ✅ Fix canonical (apex→www) + contraste WCAG AA: shippeado en PR #2
+✅ Contraste adicional (recetas/cultura + 4 badges/hero más): aplicado en /review, pendiente commit
 ⏳ PR #2: pendiente review + merge (owner, vía Vercel preview) — NO mergeado por Claude a propósito
 ⏳ POST-MERGE: actualizar NEXT_PUBLIC_SITE_URL en Vercel → https://www.holalacubanflavor.com + redeploy
 ⏳ POST-MERGE: re-correr Lighthouse en producción para confirmar canonical 100%
-⏳ Deuda: contraste recetas/cultura badges en blog (no bloqueante)
 ```
 
 ### 🎉 Sprint 1 — COMPLETO

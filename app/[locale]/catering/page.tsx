@@ -31,7 +31,7 @@ export default async function CateringPage({ params }: Props) {
     <div className="min-h-screen bg-cream">
       {/* Header */}
       <section className="bg-espresso py-14 px-4 text-center">
-        <span className="inline-block bg-orange/20 text-orange text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-4">
+        <span className="inline-block bg-orange text-espresso text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-4">
           Solicitar Cotización
         </span>
         <h1 className="font-display text-4xl sm:text-5xl font-bold text-cream mb-3">
