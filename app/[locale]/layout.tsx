@@ -50,7 +50,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       'Latin catering San Antonio',
       'food truck catering San Antonio',
     ],
-    metadataBase: new URL('https://holalacubanflavor.com'),
+    metadataBase: new URL('https://www.holalacubanflavor.com'),
     openGraph: {
       type: 'website',
       locale: isSpanish ? 'es_US' : 'en_US',
@@ -71,10 +71,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description: 'Cuban roots, modern flavor. Food truck in San Antonio, TX.',
     },
     alternates: {
-      canonical: `https://holalacubanflavor.com/${locale}`,
+      canonical: `https://www.holalacubanflavor.com/${locale}`,
       languages: {
-        'es-US': 'https://holalacubanflavor.com/es',
-        'en-US': 'https://holalacubanflavor.com/en',
+        'es-US': 'https://www.holalacubanflavor.com/es',
+        'en-US': 'https://www.holalacubanflavor.com/en',
       },
     },
   };

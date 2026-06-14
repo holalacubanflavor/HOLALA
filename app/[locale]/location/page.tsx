@@ -44,7 +44,7 @@ export default function LocationPage() {
     <div>
       {/* Header */}
       <section className="bg-espresso py-16 px-4 text-center">
-        <span className="inline-block bg-teal/20 text-teal text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-4">
+        <span className="inline-block bg-teal/20 text-cream text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-4">
           {t('badge')}
         </span>
         <h1 className="font-display text-4xl sm:text-5xl font-bold text-cream">
@@ -93,7 +93,7 @@ export default function LocationPage() {
               {areas.map((area) => (
                 <span
                   key={area}
-                  className="bg-teal/10 text-teal text-sm font-medium px-3 py-1.5 rounded-full"
+                  className="bg-teal/10 text-teal-dark text-sm font-medium px-3 py-1.5 rounded-full"
                 >
                   {area}
                 </span>

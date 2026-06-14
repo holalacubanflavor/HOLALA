@@ -85,7 +85,7 @@ function Hero() {
         </div>
 
         {/* Trust indicators */}
-        <div className="flex items-center justify-center gap-4 mt-10 text-cream/40 text-sm">
+        <div className="flex items-center justify-center gap-4 mt-10 text-cream/60 text-sm">
           <span className="flex items-center gap-1">
             <Star size={14} className="fill-orange text-orange" />
             <Star size={14} className="fill-orange text-orange" />
@@ -114,7 +114,7 @@ function HoursStrip() {
             {t('days')} · {t('hours')}
           </span>
           <span className="hidden sm:block opacity-40">|</span>
-          <span className="flex items-center gap-2 text-cream/80">
+          <span className="flex items-center gap-2 text-cream">
             <MapPin size={16} className="text-orange" />
             {t('areas')}
           </span>
@@ -182,7 +182,7 @@ function CateringCTA() {
   return (
     <section className="bg-cream-dark py-16 sm:py-20">
       <div className="max-w-4xl mx-auto px-4 text-center">
-        <span className="inline-block bg-orange/15 text-orange text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-4">
+        <span className="inline-block bg-espresso text-orange text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-4">
           {t('badge')}
         </span>
         <h2 className="font-display text-3xl sm:text-4xl font-bold text-espresso mb-4">
@@ -209,7 +209,7 @@ function AboutTeaser() {
   return (
     <section className="py-16 sm:py-20 px-4">
       <div className="max-w-3xl mx-auto text-center">
-        <span className="inline-block bg-teal/10 text-teal text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-4">
+        <span className="inline-block bg-teal/10 text-teal-dark text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-4">
           {t('badge')}
         </span>
         <h2 className="font-display text-3xl sm:text-4xl font-bold text-espresso mb-4">

@@ -52,7 +52,7 @@ export default function AboutPage() {
     <div>
       {/* Hero */}
       <section className="bg-espresso py-20 px-4 text-center">
-        <span className="inline-block bg-orange/20 text-orange text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-4">
+        <span className="inline-block bg-orange text-espresso text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-4">
           {t('badge')}
         </span>
         <h1 className="font-display text-4xl sm:text-5xl md:text-6xl font-bold text-cream max-w-2xl mx-auto leading-tight">

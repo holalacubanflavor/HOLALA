@@ -62,9 +62,9 @@ const staticPosts = [
 ];
 
 const categoryColors: Record<string, string> = {
-  historia: 'bg-teal/10 text-teal',
-  recetas: 'bg-orange/10 text-orange',
-  cultura: 'bg-green/10 text-green',
+  historia: 'bg-teal/10 text-teal-dark',
+  recetas: 'bg-orange/10 text-espresso',
+  cultura: 'bg-green/10 text-green-dark',
 };
 
 export default async function BlogPage({ params }: Props) {
@@ -75,7 +75,7 @@ export default async function BlogPage({ params }: Props) {
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-12">
       {/* Header */}
       <div className="text-center mb-12">
-        <span className="inline-block bg-orange/10 text-orange text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-4">
+        <span className="inline-block bg-espresso text-orange text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-4">
           {t('badge')}
         </span>
         <h1 className="font-display text-4xl sm:text-5xl font-bold text-espresso mb-3">

@@ -9,6 +9,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ['/admin/', '/api/'],
       },
     ],
-    sitemap: 'https://holalacubanflavor.com/sitemap.xml',
+    sitemap: 'https://www.holalacubanflavor.com/sitemap.xml',
   };
 }

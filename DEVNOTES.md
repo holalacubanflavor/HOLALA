@@ -22,6 +22,80 @@ npm install <package> --legacy-peer-deps
 
 ---
 
+## SESSION LOG — 2026-06-14 (sesión 5) — CIERRE
+
+### Commits de la sesión
+| Hash | Descripción |
+|------|-------------|
+| `e4ba618` | fix: correct canonical domain to www + fix color contrast (Lighthouse a11y) |
+
+### Qué se completó
+
+**DNS Cloudflare — 100% operativo:**
+- Registros A del apex (`holalacubanflavor.com`) → IPs de Vercel (`64.29.17.65`, `216.198.79.65`)
+- CNAME `www` → Vercel
+- Registros TXT `_vercel.*` (verificación de dominio) conservados
+- Verificado en producción: `holalacubanflavor.com` → 308 → `www.holalacubanflavor.com` → 307 → `/es`, SSL válido (header `Strict-Transport-Security` presente)
+
+**Google Search Console:**
+- Dominio verificado por el owner (Domain property, TXT en la raíz)
+- Se eligió "Domain property" sobre "URL prefix" para cubrir el redirect apex→www sin desajustes de canonical
+
+**Lighthouse mobile audit (producción, `https://www.holalacubanflavor.com/es`):**
+- Resultado: Performance 99 / Accessibility 96 / Best Practices 100 / SEO 92 / Agentic Browsing 100
+- ✅ Objetivo Sprint 1 "Lighthouse mobile ≥90" cumplido incluso antes de los fixes
+- Issues encontrados: (1) canonical apuntaba a `holalacubanflavor.com` sin `www` (mismatch con la URL real), (2) contraste insuficiente en varios textos/badges (`text-cream/80` y `text-cream/40` sobre `bg-teal`/`bg-espresso`, `text-orange` sobre fondo claro, `text-teal` sobre `bg-teal/10`)
+- Después del fix (verificado local): Accessibility 100, auditoría de contraste 100% pass
+
+**Fix 1 — Canonical domain (apex → www):**
+- `app/[locale]/layout.tsx`: `metadataBase`, `alternates.canonical`, `alternates.languages` (es-US/en-US) → `https://www.holalacubanflavor.com`
+- `app/sitemap.ts`, `app/robots.ts`, `lib/seo/schemas.ts` (fallback BASE_URL) → mismo dominio `www`
+- `.env.local` y `.env.local.example`: `NEXT_PUBLIC_SITE_URL=https://www.holalacubanflavor.com`
+
+**Fix 2 — Contraste WCAG AA (4.5:1):**
+- `app/[locale]/page.tsx`:
+  - HoursStrip: `text-cream/80` → `text-cream` (sobre `bg-teal`)
+  - CateringCTA badge: `bg-orange/15 text-orange` → `bg-espresso text-orange` (naranja #F97316 nunca alcanza 4.5:1 sobre fondos claros — luminancia ≈0.3245; se invirtió a chip oscuro, ratio ≈5.97:1)
+  - AboutTeaser badge: `text-teal` → `text-teal-dark` (mantiene `bg-teal/10`)
+- `components/marketing/Footer.tsx`: bottom bar `text-cream/40` → `text-cream/60`; links `hover:text-cream/60` → `hover:text-cream`
+- Mismo patrón `bg-teal/10 text-teal` → `bg-teal/10 text-teal-dark` aplicado también en:
+  - `app/[locale]/blog/page.tsx` (categoría "historia")
+  - `app/[locale]/faq/page.tsx` (badge)
+  - `app/[locale]/blog/[slug]/page.tsx` (categoría del artículo)
+  - `app/[locale]/location/page.tsx` (pill de área)
+
+**PR creado (pendiente review/merge del owner):**
+- Branch `fix/canonical-www-a11y-contrast` → **PR #2**: https://github.com/Digisenda/holala-web/pull/2
+
+**Fix 3 — Contraste adicional (encontrado en /review de PR #2, mismo branch):**
+- `app/[locale]/blog/page.tsx`:
+  - `categoryColors.recetas: 'bg-orange/10 text-orange'` (2.13:1) → `'bg-orange/10 text-espresso'` (14.0:1)
+  - `categoryColors.cultura: 'bg-green/10 text-green'` (~4.39:1) → `'bg-green/10 text-green-dark'` (6.11:1), mismo patrón que "historia"
+  - Badge de header (`{t('badge')}`): `bg-orange/10 text-orange` (2.13:1) → `bg-espresso text-orange` (5.97:1)
+- `app/[locale]/about/page.tsx`: badge hero `bg-orange/20 text-orange` (2.13:1) → `bg-orange text-espresso` (5.97:1)
+- `app/[locale]/catering/page.tsx`: badge "Solicitar Cotización" `bg-orange/20 text-orange` (2.13:1) → `bg-orange text-espresso` (5.97:1)
+- `app/[locale]/location/page.tsx`: badge hero `bg-teal/20 text-teal` (~3.2:1) → `bg-teal/20 text-cream` (12.9:1)
+- `app/[locale]/page.tsx`: Hero "trust indicators" (5 estrellas + "5.0 · San Antonio, TX") `text-cream/40` (3.55:1) → `text-cream/60` (6.32:1), mismo fix ya aplicado al Footer
+- Confirmado: naranja (#F97316/#ea6c0a) no alcanza 4.5:1 en ninguna variante "chip claro" (`text-orange`/`text-orange-dark` sobre `bg-orange/10` o `/20`) — siempre invertir a chip oscuro (`bg-orange text-espresso` o `bg-espresso text-orange`, ambos ≈5.97:1) o usar texto neutro oscuro (`text-espresso`, 14.0:1).
+
+### Estado al cerrar sesión
+```
+✅ DNS Cloudflare: completo (apex + www → Vercel, SSL válido)
+✅ Google Search Console: dominio verificado
+✅ Lighthouse mobile: ≥90 en todas las categorías (objetivo Sprint 1 cumplido)
+✅ Fix canonical (apex→www) + contraste WCAG AA: shippeado en PR #2
+✅ Contraste adicional (recetas/cultura + 4 badges/hero más): aplicado en /review, pendiente commit
+⏳ PR #2: pendiente review + merge (owner, vía Vercel preview) — NO mergeado por Claude a propósito
+⏳ POST-MERGE: actualizar NEXT_PUBLIC_SITE_URL en Vercel → https://www.holalacubanflavor.com + redeploy
+⏳ POST-MERGE: re-correr Lighthouse en producción para confirmar canonical 100%
+```
+
+### 🎉 Sprint 1 — COMPLETO
+
+Con DNS + GSC + Lighthouse ≥90 cerrados, **Sprint 1 está 100% completo**. Ver checklist actualizado más abajo.
+
+---
+
 ## SESSION LOG — 2026-06-12 (sesión 4)
 
 ### Qué se completó
@@ -301,10 +375,10 @@ Copia `.env.local.example` a `.env.local` y completa:
 |----------|--------|---------------|
 | `NEXT_PUBLIC_SUPABASE_URL` | ✅ Configurada | `https://oifwxosgmftdplmejhgq.supabase.co` |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ✅ Configurada | Ver `.env.local` |
-| `NEXT_PUBLIC_SANITY_PROJECT_ID` | ⏳ Pendiente | sanity.io → Create project |
+| `NEXT_PUBLIC_SANITY_PROJECT_ID` | ✅ Configurada | `d082imwm` (sesión 3) |
 | `NEXT_PUBLIC_SANITY_DATASET` | ✅ Default | `production` |
 | `NEXT_PUBLIC_GA4_MEASUREMENT_ID` | ⏳ Pendiente | Google Analytics → Admin → Data Streams |
-| `NEXT_PUBLIC_SITE_URL` | ✅ Configurada | `https://holalacubanflavor.com` |
+| `NEXT_PUBLIC_SITE_URL` | ✅ Configurada (código) / ⏳ Vercel pendiente post-merge PR #2 | `https://www.holalacubanflavor.com` |
 
 ---
 
@@ -348,12 +422,12 @@ Tablas activas: `products`, `sales`, `sale_items`, `customers`, `catering_leads`
 - [x] Sanity schema (menuItem, blogPost)
 - [x] lib/sanity/client.ts + queries.ts
 
-### ⏳ Pendiente para completar Sprint 1
-- [ ] Crear proyecto en Sanity + copiar Project ID al .env.local
-- [ ] Deploy a Vercel + configurar env vars
-- [ ] DNS en Cloudflare → holalacubanflavor.com
-- [ ] Google Search Console verificado
-- [ ] Lighthouse mobile ≥90 (verificar post-deploy)
+### ✅ Sprint 1 — COMPLETO (cerrado sesión 5, 2026-06-14)
+- [x] Crear proyecto en Sanity + copiar Project ID al .env.local (sesión 3 — `d082imwm`)
+- [x] Deploy a Vercel + configurar env vars (sesión 2 — `holala-web.vercel.app`)
+- [x] DNS en Cloudflare → holalacubanflavor.com (sesión 5 — apex + www → Vercel, SSL OK)
+- [x] Google Search Console verificado (sesión 5 — Domain property)
+- [x] Lighthouse mobile ≥90 (sesión 5 — Perf 99 / A11y 96→100 / BP 100 / SEO 92 / Agentic 100)
 
 ### 🗓️ Sprint 2 (días 11-18)
 - [ ] Admin: catering pipeline completo (conectar Supabase real + leer leads)

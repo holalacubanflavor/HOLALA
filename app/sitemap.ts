@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next';
 
-const BASE_URL = 'https://holalacubanflavor.com';
+const BASE_URL = 'https://www.holalacubanflavor.com';
 const LOCALES = ['es', 'en'] as const;
 
 const STATIC_PAGES = [

@@ -2,7 +2,7 @@
 // https://schema.org
 
 const BASE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ?? 'https://holalacubanflavor.com';
+  process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.holalacubanflavor.com';
 
 export const restaurantSchema = {
   '@context': 'https://schema.org',
