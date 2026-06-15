@@ -119,7 +119,7 @@ Deno.serve(async (req) => {
   try {
     const order = await fetchOrder(payment.order_id);
 
-    const { data: sale, error: saleError } = await supabase
+    const { data: upserted, error: saleError } = await supabase
       .from("sales")
       .upsert(
         {
@@ -139,43 +139,72 @@ Deno.serve(async (req) => {
 
     if (saleError) throw saleError;
 
-    // `sale` is null when the order was already synced (idempotent skip).
-    if (sale && Array.isArray(order.line_items)) {
-      const catalogIds = order.line_items
-        .map((item: { catalog_object_id?: string }) => item.catalog_object_id)
-        .filter((id: string | undefined): id is string => Boolean(id));
+    if (Array.isArray(order.line_items)) {
+      // `upserted` is null when the sale row already existed (ignoreDuplicates
+      // skip). Fetch its id so a retry can still repair missing line items
+      // from a previous attempt that failed after the sales upsert.
+      let saleId: string;
+      if (upserted) {
+        saleId = upserted.id;
+      } else {
+        const { data: existing, error: existingError } = await supabase
+          .from("sales")
+          .select("id")
+          .eq("square_order_id", order.id)
+          .single();
+        if (existingError) throw existingError;
+        saleId = existing.id;
+      }
 
-      const { data: products } = catalogIds.length
-        ? await supabase
-          .from("products")
-          .select("id, square_catalog_id")
-          .in("square_catalog_id", catalogIds)
-        : { data: [] as { id: string; square_catalog_id: string }[] };
+      const { count: existingItemCount, error: countError } = await supabase
+        .from("sale_items")
+        .select("id", { count: "exact", head: true })
+        .eq("sale_id", saleId);
+      if (countError) throw countError;
 
-      const productByCatalogId = new Map(
-        (products ?? []).map((p) => [p.square_catalog_id, p.id]),
-      );
+      // Skip if items were already synced — keeps retries idempotent.
+      if (!existingItemCount) {
+        const catalogIds = order.line_items
+          .map((item: { catalog_object_id?: string }) => item.catalog_object_id)
+          .filter((id: string | undefined): id is string => Boolean(id));
 
-      const saleItems = order.line_items.map((item: {
-        catalog_object_id?: string;
-        name?: string;
-        quantity?: string;
-        base_price_money?: { amount?: number };
-        total_money?: { amount?: number };
-      }) => ({
-        sale_id: sale.id,
-        product_id: item.catalog_object_id
-          ? productByCatalogId.get(item.catalog_object_id) ?? null
-          : null,
-        square_item_id: item.catalog_object_id ?? null,
-        item_name: item.name ?? "Unknown item",
-        quantity: parseQuantity(item.quantity),
-        unit_price: money(item.base_price_money),
-        total_price: money(item.total_money),
-      }));
+        // NOTE: line_items[].catalog_object_id is a CatalogItemVariation id.
+        // products.square_catalog_id must store variation ids (not parent
+        // CatalogItem ids) for this lookup to match — see /admin/menu sync.
+        const { data: products, error: productsError } = catalogIds.length
+          ? await supabase
+            .from("products")
+            .select("id, square_catalog_id")
+            .in("square_catalog_id", catalogIds)
+          : { data: [] as { id: string; square_catalog_id: string }[], error: null };
 
-      const { error: itemsError } = await supabase.from("sale_items").insert(saleItems);
-      if (itemsError) throw itemsError;
+        if (productsError) throw productsError;
+
+        const productByCatalogId = new Map(
+          (products ?? []).map((p) => [p.square_catalog_id, p.id]),
+        );
+
+        const saleItems = order.line_items.map((item: {
+          catalog_object_id?: string;
+          name?: string;
+          quantity?: string;
+          base_price_money?: { amount?: number };
+          total_money?: { amount?: number };
+        }) => ({
+          sale_id: saleId,
+          product_id: item.catalog_object_id
+            ? productByCatalogId.get(item.catalog_object_id) ?? null
+            : null,
+          square_item_id: item.catalog_object_id ?? null,
+          item_name: item.name ?? "Unknown item",
+          quantity: parseQuantity(item.quantity),
+          unit_price: money(item.base_price_money),
+          total_price: money(item.total_money),
+        }));
+
+        const { error: itemsError } = await supabase.from("sale_items").insert(saleItems);
+        if (itemsError) throw itemsError;
+      }
     }
 
     return new Response("ok", { status: 200 });
