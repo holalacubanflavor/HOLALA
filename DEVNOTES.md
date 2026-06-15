@@ -96,6 +96,46 @@ Con DNS + GSC + Lighthouse ≥90 cerrados, **Sprint 1 está 100% completo**. Ver
 
 ---
 
+## SESSION LOG — 2026-06-15 (sesión 6) — CIERRE
+
+### Commits de la sesión
+| Hash | Descripción |
+|------|-------------|
+| `b0c1a31` | fix: idempotent sale_items repair on retry, surface productsError (cherry-pick de `d33bc20`, branch `fix/square-webhook-idempotent-retry` → PR #3) |
+
+Sin cambios de código nuevos directos a `main` esta sesión (PR #2 ya estaba mergeado al iniciar, vía `c24bcb6`). El trabajo fue configuración de infraestructura (Vercel CLI, env vars, GA4) + recuperar un commit huérfano vía PR #3.
+
+### Qué se completó
+
+**PR #2 — POST-MERGE (completo):**
+- Vercel CLI autenticado localmente (`vercel login` + `vercel link` → proyecto `holala-web`, team `digisenda-4410s-projects`)
+- `NEXT_PUBLIC_SITE_URL` actualizado a `https://www.holalacubanflavor.com` (Production) vía `vercel env rm/add` + `vercel redeploy`
+- Verificado en vivo: canonical tag y `/sitemap.xml` ya usan `www`
+
+**GA4 configurado:**
+- `NEXT_PUBLIC_GA4_MEASUREMENT_ID=G-R0Q4D06G1F` agregado a `.env.local` y a Vercel Production (`components/analytics/GoogleAnalytics.tsx` ya estaba implementado y wireado en `layout.tsx`, solo faltaba el ID)
+- Redeploy + verificado: `googletagmanager.com/gtag/js?id=G-R0Q4D06G1F` presente en `/es` producción
+
+**PR #3 — abierto, listo para merge:**
+- `d33bc20` (fix de idempotencia del Square webhook, ya desplegado como `square-webhook` v3 en sesión 5) vivía en `origin/claude/mcp-squarre-access-3avb2s` sin mergear a `main`
+- Cherry-pick limpio → branch `fix/square-webhook-idempotent-retry` (commit `b0c1a31`) → **PR #3**: https://github.com/Digisenda/holala-web/pull/3
+- Estado: `MERGEABLE`, CI verde (Vercel build + preview comments OK), sin conflictos. El código YA corre en producción (Supabase v3) — este PR solo sincroniza `main`. Listo para mergear, pendiente de decisión del owner.
+
+**Investigación Square MCP (sin cambios de código, sin bloqueos nuevos):**
+- Se evaluó si ampliar scopes del conector Square MCP (`DEVELOPER_APPLICATION_WEBHOOKS_READ`/`WRITE`) destrabaría la configuración de secrets del webhook. Conclusión: el Access Token de Square NUNCA es accesible vía API (siempre Dashboard manual, sea cual sea el scope); el bloqueo de `supabase secrets set` es por falta de auth de la CLI de Supabase local (`supabase login`), totalmente independiente de Square/MCP. Se acordó posponer todo el flujo de secrets de Square a la próxima sesión.
+
+### Estado al cerrar sesión
+```
+✅ PR #2 post-merge: NEXT_PUBLIC_SITE_URL → www, redeploy y verificación en producción OK
+✅ GA4: G-R0Q4D06G1F configurado y verificado en producción
+✅ PR #3 abierto y listo para merge (CI verde, mergeable, sin conflictos) — pendiente decisión del owner
+⏳ PRÓXIMA SESIÓN: Square webhook secrets — Dashboard manual (subscription + Access Token) + `supabase login` + `supabase secrets set`
+⏳ Re-correr Lighthouse mobile en producción (confirmar si SEO sube de 92 con canonical www)
+⏳ Admin login real (Supabase Auth UI) — Sprint 2, no iniciado
+```
+
+---
+
 ## SESSION LOG — 2026-06-12 (sesión 4)
 
 ### Qué se completó
@@ -377,8 +417,8 @@ Copia `.env.local.example` a `.env.local` y completa:
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ✅ Configurada | Ver `.env.local` |
 | `NEXT_PUBLIC_SANITY_PROJECT_ID` | ✅ Configurada | `d082imwm` (sesión 3) |
 | `NEXT_PUBLIC_SANITY_DATASET` | ✅ Default | `production` |
-| `NEXT_PUBLIC_GA4_MEASUREMENT_ID` | ⏳ Pendiente | Google Analytics → Admin → Data Streams |
-| `NEXT_PUBLIC_SITE_URL` | ✅ Configurada (código) / ⏳ Vercel pendiente post-merge PR #2 | `https://www.holalacubanflavor.com` |
+| `NEXT_PUBLIC_GA4_MEASUREMENT_ID` | ✅ Configurada | `G-R0Q4D06G1F` (sesión 6, verificado en producción) |
+| `NEXT_PUBLIC_SITE_URL` | ✅ Configurada (código + Vercel Production) | `https://www.holalacubanflavor.com` (sesión 6) |
 
 ---
 
