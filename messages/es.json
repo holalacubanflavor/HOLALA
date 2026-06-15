@@ -13,35 +13,53 @@
     "hero": {
       "tagline": "Latin Tropical Street Food",
       "subtitle": "Cuban roots, modern flavor.",
+      "headline": "Sabor cubano, vibra tropical, corazón de San Antonio.",
+      "subheadline": "Food truck cubano-latino con recetas familiares, energía tropical y catering para eventos que se recuerdan.",
       "cta_menu": "Ver Menú",
-      "cta_catering": "Solicitar Catering"
+      "cta_catering": "Solicitar Catering",
+      "badge_authentic": "Sabores auténticos",
+      "badge_cuba": "Inspirado en Cuba",
+      "badge_passion": "Hecho con pasión",
+      "badge_sa": "San Antonio, TX"
     },
     "hours_section": {
       "title": "¿Cuándo nos encuentras?",
       "days": "Miércoles – Domingo",
       "hours": "4:00 PM – 10:00 PM",
-      "areas": "Stone Oak · Alamo Heights · Downtown · Southtown"
+      "areas": "Stone Oak · Alamo Heights · Downtown · Southtown",
+      "follow_ig": "Síguenos para la ubicación de hoy"
     },
     "menu_preview": {
       "title": "Los Favoritos",
       "subtitle": "Sabores que no olvidarás",
-      "cta": "Ver Menú Completo"
+      "cta": "Ver Menú Completo",
+      "badge_popular": "Popular",
+      "item_cta": "Ver detalle"
     },
     "catering_section": {
       "badge": "Eventos Privados",
       "title": "¿Tienes un evento especial?",
       "subtitle": "Llevamos la experiencia HOLALA a tu celebración — bodas, corporativos, fiestas y más.",
-      "cta": "Pide tu Cotización"
+      "cta": "Solicitar Cotización",
+      "ev_families": "Familias",
+      "ev_private": "Eventos Privados",
+      "ev_corporate": "Corporate",
+      "ev_celebrations": "Celebraciones"
     },
     "about_section": {
       "badge": "Nuestra Historia",
       "title": "Sabor cubano en el corazón de San Antonio",
       "body": "HOLALA nació del amor por la cocina cubana auténtica y la vibra de la calle. Ingredientes frescos, recetas familiares y mucho sabor tropical — eso es lo que llevamos a cada evento.",
-      "cta": "Conoce más"
+      "quote": "Cada plato lleva un pedacito de Cuba y mucho cariño de San Antonio.",
+      "bullet_recipes": "Recetas familiares",
+      "bullet_flavor": "Sabor cubano auténtico",
+      "bullet_fresh": "Hecho al momento",
+      "cta": "Conoce nuestra historia"
     },
     "social_section": {
       "title": "Síguenos en Instagram",
       "handle": "@holalacubanflavor",
+      "body": "Únete al sabor — fotos del menú, ubicaciones diarias y promos exclusivas.",
       "cta": "Ver perfil"
     }
   },
