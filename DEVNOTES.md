@@ -102,6 +102,7 @@ Con DNS + GSC + Lighthouse ≥90 cerrados, **Sprint 1 está 100% completo**. Ver
 | Hash | Descripción |
 |------|-------------|
 | `b0c1a31` | fix: idempotent sale_items repair on retry, surface productsError (cherry-pick de `d33bc20`, branch `fix/square-webhook-idempotent-retry` → PR #3) |
+| `0cbb047` | chore: ignore supabase/.temp local link metadata |
 
 Sin cambios de código nuevos directos a `main` esta sesión (PR #2 ya estaba mergeado al iniciar, vía `c24bcb6`). El trabajo fue configuración de infraestructura (Vercel CLI, env vars, GA4) + recuperar un commit huérfano vía PR #3.
 
@@ -122,14 +123,29 @@ Sin cambios de código nuevos directos a `main` esta sesión (PR #2 ya estaba me
 - Estado: `MERGEABLE`, CI verde (Vercel build + preview comments OK), sin conflictos. El código YA corre en producción (Supabase v3) — este PR solo sincroniza `main`. Listo para mergear, pendiente de decisión del owner.
 
 **Investigación Square MCP (sin cambios de código, sin bloqueos nuevos):**
-- Se evaluó si ampliar scopes del conector Square MCP (`DEVELOPER_APPLICATION_WEBHOOKS_READ`/`WRITE`) destrabaría la configuración de secrets del webhook. Conclusión: el Access Token de Square NUNCA es accesible vía API (siempre Dashboard manual, sea cual sea el scope); el bloqueo de `supabase secrets set` es por falta de auth de la CLI de Supabase local (`supabase login`), totalmente independiente de Square/MCP. Se acordó posponer todo el flujo de secrets de Square a la próxima sesión.
+- Se evaluó si ampliar scopes del conector Square MCP (`DEVELOPER_APPLICATION_WEBHOOKS_READ`/`WRITE`) destrabaría la configuración de secrets del webhook. Conclusión: el Access Token de Square NUNCA es accesible vía API (siempre Dashboard manual, sea cual sea el scope); el bloqueo de `supabase secrets set` es por falta de auth de la CLI de Supabase local (`supabase login`), totalmente independiente de Square/MCP.
+
+**Supabase CLI — autenticado y proyecto vinculado:**
+- El CLI ya estaba autenticado (sesión previa del owner) — `npx supabase projects list` funcionó sin necesidad del Personal Access Token nuevo que se generó (no se usó)
+- `npx supabase link --project-ref oifwxosgmftdplmejhgq` → éxito, proyecto `holala-web` vinculado
+- Verificado: `npx supabase secrets list --project-ref oifwxosgmftdplmejhgq` devuelve los secrets actuales — confirma acceso de lectura/escritura a secrets de este proyecto
+- `supabase/.temp/` (metadata local del link) agregado a `.gitignore` (commit `0cbb047`)
+- **Esto desbloquea por completo el lado de Supabase para el Square webhook** — solo falta lo que el owner debe hacer en Square Developer Dashboard (ver abajo)
 
 ### Estado al cerrar sesión
 ```
 ✅ PR #2 post-merge: NEXT_PUBLIC_SITE_URL → www, redeploy y verificación en producción OK
 ✅ GA4: G-R0Q4D06G1F configurado y verificado en producción
-✅ PR #3 abierto y listo para merge (CI verde, mergeable, sin conflictos) — pendiente decisión del owner
-⏳ PRÓXIMA SESIÓN: Square webhook secrets — Dashboard manual (subscription + Access Token) + `supabase login` + `supabase secrets set`
+✅ PR #3 mergeado a main (confirmado por el owner)
+✅ Supabase CLI autenticado + proyecto holala-web vinculado (npx supabase link, listo para secrets set)
+⏳ PRÓXIMA SESIÓN — arranca directo aquí: Square webhook secrets
+   1. Owner: Square Developer Dashboard → Webhooks → Subscriptions → Add subscription
+      - Event: payment.updated
+      - Notification URL: https://oifwxosgmftdplmejhgq.supabase.co/functions/v1/square-webhook
+      - Copiar el "Signature Key" generado
+   2. Owner: Square Developer Dashboard → Apps → [app] → Credentials → copiar Access Token
+   3. Claude: supabase secrets set --project-ref oifwxosgmftdplmejhgq SQUARE_ACCESS_TOKEN=... SQUARE_ENVIRONMENT=sandbox SQUARE_WEBHOOK_SIG_KEY=... SQUARE_WEBHOOK_NOTIFICATION_URL=...
+   4. Probar con "Test webhook" desde Square Developer Console, verificar filas en sales/sale_items
 ⏳ Re-correr Lighthouse mobile en producción (confirmar si SEO sube de 92 con canonical www)
 ⏳ Admin login real (Supabase Auth UI) — Sprint 2, no iniciado
 ```
