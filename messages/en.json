@@ -13,35 +13,53 @@
     "hero": {
       "tagline": "Latin Tropical Street Food",
       "subtitle": "Cuban roots, modern flavor.",
+      "headline": "Cuban flavor, tropical vibes, San Antonio heart.",
+      "subheadline": "Cuban-Latin food truck with family recipes, tropical energy, and catering for memorable events.",
       "cta_menu": "View Menu",
-      "cta_catering": "Request Catering"
+      "cta_catering": "Request Catering",
+      "badge_authentic": "Authentic flavors",
+      "badge_cuba": "Inspired by Cuba",
+      "badge_passion": "Made with passion",
+      "badge_sa": "San Antonio, TX"
     },
     "hours_section": {
       "title": "When Can You Find Us?",
       "days": "Wednesday – Sunday",
       "hours": "4:00 PM – 10:00 PM",
-      "areas": "Stone Oak · Alamo Heights · Downtown · Southtown"
+      "areas": "Stone Oak · Alamo Heights · Downtown · Southtown",
+      "follow_ig": "Follow us for today's location"
     },
     "menu_preview": {
       "title": "Fan Favorites",
       "subtitle": "Flavors you won't forget",
-      "cta": "View Full Menu"
+      "cta": "View Full Menu",
+      "badge_popular": "Popular",
+      "item_cta": "View item"
     },
     "catering_section": {
       "badge": "Private Events",
       "title": "Planning a special event?",
       "subtitle": "We bring the HOLALA experience to your celebration — weddings, corporate, birthdays and more.",
-      "cta": "Get a Quote"
+      "cta": "Request a Quote",
+      "ev_families": "Families",
+      "ev_private": "Private Events",
+      "ev_corporate": "Corporate",
+      "ev_celebrations": "Celebrations"
     },
     "about_section": {
       "badge": "Our Story",
       "title": "Cuban flavor in the heart of San Antonio",
       "body": "HOLALA was born from a love of authentic Cuban cuisine and street food vibes. Fresh ingredients, family recipes and lots of tropical flavor — that's what we bring to every event.",
-      "cta": "Learn More"
+      "quote": "Every dish carries a piece of Cuba and a lot of San Antonio love.",
+      "bullet_recipes": "Family recipes",
+      "bullet_flavor": "Authentic Cuban flavor",
+      "bullet_fresh": "Made fresh to order",
+      "cta": "Discover our story"
     },
     "social_section": {
       "title": "Follow Us on Instagram",
       "handle": "@holalacubanflavor",
+      "body": "Join the flavor — menu photos, daily locations, and exclusive promos.",
       "cta": "View profile"
     }
   },

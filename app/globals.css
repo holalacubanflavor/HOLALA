@@ -66,4 +66,16 @@
   .text-balance {
     text-wrap: balance;
   }
+
+  /* Hero glow — radial tropical teal + orange over espresso */
+  .bg-tropical-glow {
+    background-image:
+      radial-gradient(circle at 25% 15%, rgba(14, 124, 134, 0.35), transparent 55%),
+      radial-gradient(circle at 85% 75%, rgba(249, 115, 22, 0.18), transparent 50%);
+  }
+
+  /* Warm accent shadow for premium cards/visuals */
+  .shadow-warm {
+    box-shadow: 0 20px 45px -20px rgba(249, 115, 22, 0.35);
+  }
 }
