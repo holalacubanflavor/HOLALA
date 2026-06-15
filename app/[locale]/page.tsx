@@ -301,7 +301,7 @@ function AboutTeaser() {
           <ul className="space-y-3 mb-8 inline-block text-left">
             {bullets.map((bullet) => (
               <li key={bullet} className="flex items-center gap-3 text-espresso font-medium">
-                <span className="flex items-center justify-center w-7 h-7 rounded-full bg-orange/15 text-orange shrink-0">
+                <span className="flex items-center justify-center w-7 h-7 rounded-full bg-orange text-espresso shrink-0">
                   <Check size={15} />
                 </span>
                 {bullet}
