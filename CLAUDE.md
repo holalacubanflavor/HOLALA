@@ -105,6 +105,10 @@ supabase functions serve square-webhook
 
 ## Design Document
 
-El design doc completo (con schema de DB, RLS policies, modelo Sanity bilingüe,
-especificaciones UX mobile-first, audit trail del /autoplan) está en:
-`C:\Users\juant\.gstack\projects\HOLALA\juant-unknown-design-20260523-143211.md`
+El design doc original del `/autoplan` (schema de DB, RLS policies, modelo Sanity
+bilingüe, especificaciones UX mobile-first, audit trail) se generó en la máquina/
+sesión original del 2026-05-23 en `~/.gstack/projects/HOLALA/`, una ruta local de
+esa máquina (`juant`) que no existe en este equipo ni se commiteó al repo. No hay
+copia disponible — el contenido relevante ya quedó reflejado en las migraciones
+de `supabase/migrations/` y en este archivo. Si se necesita el doc original,
+pedirlo al owner.
