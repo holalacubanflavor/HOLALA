@@ -22,6 +22,81 @@ npm install <package> --legacy-peer-deps
 
 ---
 
+## SESSION LOG — 2026-06-19 (sesión 7) — Migración Supabase DigiSenda → holala
+
+### Por qué
+El owner está consolidando HOLALA en una cuenta/org Supabase dedicada
+(`holalacubanflavor@gmail.com`, proyecto `rqpfqxmohdttghscoknh`) en vez de
+seguir en el proyecto original alojado en la cuenta multi-proyecto DigiSenda AI
+(`oifwxosgmftdplmejhgq`). El proyecto origen tenía 0 filas en las 5 tablas →
+migración de schema/infra, sin migración de datos.
+
+### Qué se completó
+**Schema (Fase 1):** las 9 migraciones del repo (`001`–`009`) aplicadas al
+proyecto destino, vacío, vía `execute_sql` (no `apply_migration` — ver nota
+abajo). Incluye `009_security_hardening.sql`, un archivo **nuevo** creado esta
+sesión: recupera el SQL exacto de 2 fixes de seguridad que en el proyecto
+original se aplicaron directo a la BD el 2026-05-27 y nunca se commitearon
+(`fix_function_security_search_path_and_anon_execute`,
+`revoke_public_execute_on_is_admin`) — ahora el historial del repo coincide
+con lo que realmente corre en producción. Verificado con `list_tables` (5
+tablas, RLS on) y `get_advisors` (mismas 2 WARN preexistentes del proyecto
+original — `catering_leads_public_insert` con `WITH CHECK(true)` y `is_admin()`
+ejecutable por `authenticated`; el destino también muestra una función
+`rls_auto_enable()` propia de Supabase que no existe en el origen — feature de
+plataforma de proyectos más nuevos, no algo introducido por esta migración).
+
+**Edge Function (Fase 2):** `square-webhook` (mismo código v3, `verify_jwt=false`)
+desplegada y `ACTIVE` en el destino.
+
+**Cutover de la app (Fase 5):** `NEXT_PUBLIC_SUPABASE_URL`/`NEXT_PUBLIC_SUPABASE_ANON_KEY`
+actualizadas en Vercel (Preview+Production, vía `vercel env rm`/`add`) y en los
+secrets de GitHub Actions (`gh secret set`, usados por `keep-supabase-alive.yml`);
+`.env.local` recreado localmente y `.env.local.example` actualizado (URL de
+ejemplo de `SQUARE_WEBHOOK_NOTIFICATION_URL`). Redeploy de producción
+(`vercel --prod`) y `npm run build` local, ambos limpios.
+
+**Smoke test contra el proyecto nuevo:** home (`/es`, 200), `/es/menu` (200),
+`/admin/dashboard` (307 → `/admin/login`, igual que antes), y un envío real al
+form de catering vía `/api/catering` en producción → fila verificada en
+`catering_leads` del proyecto destino y luego borrada (era solo de prueba).
+
+### ⏳ Pendiente — Square (acción manual del owner, pausado a pedido suyo)
+No se tocó nada de Square esta sesión más allá de desplegar el código de la
+Edge Function. Falta, en este orden:
+1. Owner: Square Developer Dashboard → Webhooks → Subscriptions → nueva
+   suscripción → URL `https://rqpfqxmohdttghscoknh.supabase.co/functions/v1/square-webhook`,
+   evento `payment.updated` → copiar el Signature Key nuevo (no se puede
+   reutilizar el del proyecto viejo, está atado 1:1 a la URL).
+2. Owner: confirmar/reenviar el Access Token de Square (no es legible vía API
+   desde el proyecto viejo) y el `SQUARE_ENVIRONMENT` (sandbox/production).
+3. Claude: `supabase secrets set` en el proyecto destino con los 4 valores +
+   probar con "Test webhook" desde Square Developer Console.
+4. Solo después de eso: confirmar con el owner si pausar (no borrar)
+   `oifwxosgmftdplmejhgq` como respaldo en frío.
+
+### Nota técnica — bug/quirk de `apply_migration` en el MCP `supabase-holala`
+`apply_migration` falla de forma intermitente con (a) funciones multilínea que
+usan `RETURNS TRIGGER ... AS $$` con dollar-quote sin nombre, y (b) más de un
+`CREATE POLICY`/statement por llamada, o llamadas en paralelo muy rápidas
+(probable colisión de versión en su tabla de tracking interna). `execute_sql`
+con el mismo SQL (dollar-quote con tag, ej. `$body$`, y una sola
+declaración/objeto por llamada, ejecutadas secuencialmente) funcionó de forma
+100% confiable y fue el método usado para toda la migración de schema.
+
+### Estado al cerrar sesión
+```
+✅ Schema: 9 migraciones aplicadas y verificadas en rqpfqxmohdttghscoknh
+✅ Edge Function square-webhook: desplegada, ACTIVE, mismo código v3
+✅ Vercel + GitHub Actions: env vars de Supabase actualizadas, redeploy OK
+✅ Smoke test (home/menu/admin-redirect/catering-insert): OK contra el proyecto nuevo
+⏳ Square: webhook subscription + secrets — bloqueado en acción del owner (pausado a su pedido)
+⏳ Proyecto viejo (oifwxosgmftdplmejhgq): sigue activo, decisión de pausarlo pendiente hasta cerrar Square
+⏳ Commit + PR de 009_security_hardening.sql + estos docs — próximo paso
+```
+
+---
+
 ## SESSION LOG — 2026-06-14 (sesión 5) — CIERRE
 
 ### Commits de la sesión
@@ -444,7 +519,7 @@ Copia `.env.local.example` a `.env.local` y completa:
 
 | Variable | Estado | Dónde obtener |
 |----------|--------|---------------|
-| `NEXT_PUBLIC_SUPABASE_URL` | ✅ Configurada | `https://oifwxosgmftdplmejhgq.supabase.co` |
+| `NEXT_PUBLIC_SUPABASE_URL` | ✅ Configurada | `https://rqpfqxmohdttghscoknh.supabase.co` (sesión 7) |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ✅ Configurada | Ver `.env.local` |
 | `NEXT_PUBLIC_SANITY_PROJECT_ID` | ✅ Configurada | `d082imwm` (sesión 3) |
 | `NEXT_PUBLIC_SANITY_DATASET` | ✅ Default | `production` |
@@ -458,14 +533,17 @@ Copia `.env.local.example` a `.env.local` y completa:
 | Campo | Valor |
 |-------|-------|
 | Proyecto | `holala-web` |
-| Project ID | `oifwxosgmftdplmejhgq` |
-| URL | `https://oifwxosgmftdplmejhgq.supabase.co` |
-| Región | `us-east-1` (N. Virginia) |
-| Organización | DigiSenda AI |
+| Project ID | `rqpfqxmohdttghscoknh` |
+| URL | `https://rqpfqxmohdttghscoknh.supabase.co` |
+| Organización | holala (holalacubanflavor@gmail.com) |
 | Admin email | `digisenda@gmail.com` (en `is_admin()` function) |
-| Migraciones | 001→008 aplicadas |
+| Migraciones | 001→009 aplicadas |
 
 Tablas activas: `products`, `sales`, `sale_items`, `customers`, `catering_leads`
+
+> Migrado desde el proyecto original `oifwxosgmftdplmejhgq` (org DigiSenda AI,
+> `us-east-1`) el 2026-06-19 — ver sesión 7. Ese proyecto queda pausado como
+> respaldo en frío una vez verificado el corte completo (incluyendo Square).
 
 ---
 
