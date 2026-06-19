@@ -22,6 +22,66 @@ npm install <package> --legacy-peer-deps
 
 ---
 
+## SESSION LOG — 2026-06-19 (sesión 8) — Square webhook Production + cierre migración
+
+### Qué se completó
+
+**PR #5 — mergeado a `main`** (`d33bdf8`): la migración de Supabase a holala
+(sesión 7, commit `974e7b4`) ya está en `main`, incluyendo `009_security_hardening.sql`.
+
+**Square — webhook Production, end-to-end:**
+1. Owner creó la suscripción en Square Developer Dashboard (modo Production,
+   desde el panel unificado `app.squareup.com/dashboard/apps/my-applications`,
+   no el developer console legacy) → URL
+   `https://rqpfqxmohdttghscoknh.supabase.co/functions/v1/square-webhook`.
+   Eventos habilitados: `payment.updated`, `order.updated`,
+   `inventory.count.updated`, `refund.created`, `refund.updated`,
+   `customer.created`, `customer.updated` — solo `payment.updated` lo procesa
+   el código hoy; el resto se ignora (200 "ok") hasta que se construya su
+   tabla/lógica. Confirmado vía Square API docs que editar los event types de
+   una suscripción ya creada **no regenera la Signature Key** (son operaciones
+   independientes), así que esto se puede ampliar después sin tocar secrets.
+2. Owner copió Access Token + Application ID de **Production** (`sq0idp-...`,
+   distinto del de Sandbox `sandbox-sq0idb-...` que se obtuvo por error la
+   primera vez) desde Credentials.
+3. `supabase secrets set --project-ref rqpfqxmohdttghscoknh` con los 4 valores
+   (`SQUARE_ACCESS_TOKEN`, `SQUARE_ENVIRONMENT=production`,
+   `SQUARE_WEBHOOK_SIG_KEY`, `SQUARE_WEBHOOK_NOTIFICATION_URL`) — verificado
+   con `secrets list` (4 entradas nuevas).
+4. "Test webhook" desde Square Developer Console → `200` en los logs de la
+   Edge Function (no `401`) → firma válida. `sales` se mantuvo vacía porque el
+   payload sintético de Square no trae un pago con `status=COMPLETED` — el
+   código lo descarta de forma segura sin escribir nada. Falta confirmar el
+   camino completo (fetch a Orders API + insert) con la primera venta real;
+   queda pendiente de forma pasiva, sin acción programada.
+
+**Proyecto viejo pausado:** verificado primero que nada en producción
+dependía ya de `oifwxosgmftdplmejhgq` (Vercel Production y secrets de GitHub
+Actions ya apuntaban al proyecto nuevo desde el cutover de sesión 7, hace
+~11h) → `pause_project` ejecutado. Queda como respaldo en frío, reversible
+con `restore_project` si hace falta.
+
+### Nota técnica — auth del CLI de Supabase por cuenta, no por proyecto
+El CLI local (`npx supabase`) estaba logueado con un Personal Access Token de
+la cuenta DigiSenda, que no ve proyectos de la cuenta holala
+(`holalacubanflavor@gmail.com`) aunque ambas estén en la misma máquina. Se
+resolvió generando un PAT nuevo desde la cuenta holala y pasándolo inline vía
+`SUPABASE_ACCESS_TOKEN=<token> npx supabase ...` en vez de `supabase login`
+— evita pisar la sesión global del CLI (que sigue logueada como DigiSenda
+para los otros proyectos de esa cuenta).
+
+### Estado al cerrar sesión
+```
+✅ PR #5 mergeado a main — migración Supabase holala 100% en main
+✅ Square webhook Production: suscripción creada, 4 secrets configurados, test 200 OK
+✅ Proyecto viejo (oifwxosgmftdplmejhgq): pausado como respaldo en frío
+⏳ Primera venta real: confirmar que sales/sale_items se llenan correctamente (pasivo, sin acción programada)
+⏳ Square hardware + configuración: pendiente
+⏳ Square Online Store embed en /menu: pendiente
+```
+
+---
+
 ## SESSION LOG — 2026-06-19 (sesión 7) — Migración Supabase DigiSenda → holala
 
 ### Por qué
@@ -542,8 +602,10 @@ Copia `.env.local.example` a `.env.local` y completa:
 Tablas activas: `products`, `sales`, `sale_items`, `customers`, `catering_leads`
 
 > Migrado desde el proyecto original `oifwxosgmftdplmejhgq` (org DigiSenda AI,
-> `us-east-1`) el 2026-06-19 — ver sesión 7. Ese proyecto queda pausado como
-> respaldo en frío una vez verificado el corte completo (incluyendo Square).
+> `us-east-1`) el 2026-06-19 — ver sesión 7. Ese proyecto quedó **pausado**
+> (no borrado) el 2026-06-19 (sesión 8) como respaldo en frío, una vez
+> verificado el corte completo incluyendo Square. Reactivar con
+> `restore_project` si hace falta.
 
 ---
 
@@ -583,6 +645,6 @@ Tablas activas: `products`, `sales`, `sale_items`, `customers`, `catering_leads`
 - [ ] Implementar login admin con Supabase Auth UI en /admin/login
 - [ ] Email automático (Resend) — agregar al catering form handler
 - [ ] Migrar /api/catering → Supabase Edge Function (evitar límite 10s Vercel Hobby cuando se agregue Resend)
-- [x] Square webhook Edge Function — código desplegado (ACTIVE); falta crear webhook subscription en Square Dashboard + `supabase secrets set` (ver sesión 4)
+- [x] Square webhook Edge Function — código desplegado (ACTIVE), suscripción Production creada y 4 secrets configurados en `rqpfqxmohdttghscoknh`, test webhook 200 OK (ver sesión 8). Falta solo confirmar el insert completo con la primera venta real.
 - [ ] Square hardware + configuración
 - [ ] Square Online Store embed en /menu
