@@ -22,6 +22,91 @@ npm install <package> --legacy-peer-deps
 
 ---
 
+## SESSION LOG — 2026-06-20 (sesión 10) — `/design-shotgun`: rediseño del Hero (copy + imagen)
+
+### Qué se completó
+
+**Diagnóstico inicial:** el owner identificó que el Hero del home "se leía como
+web de IA" — dos fuentes del mismo problema: (1) el copy (`messages/*.json`)
+usaba un patrón de triada de adjetivos genéricos ("Sabor cubano, vibra tropical,
+corazón de San Antonio" + badges "Sabores auténticos"/"Inspirado en Cuba"/"Hecho
+con pasión") que cualquier negocio de comida podría reclamar, y (2)
+`hero-cover.png` (ilustración IA) tenía esos mismos badges genéricos quemados en
+el gráfico, en español fijo, duplicando el texto real de la página.
+
+**`/design-shotgun` corrido para explorar direcciones** — 3 conceptos generados
+(imagen actual depurada / foto candid de día / retrato editorial dorado), board
+de comparación servido localmente, iteración con feedback del owner en 2 rondas.
+El owner aportó 2 fotos reales como ancla para la IA:
+`public/foodtruck_blanco_limpio_v2.png` (el trailer real, blanco, sin rotular) y
+`public/Pollo Holala.jpeg` (foto real de un plato, con mucho texto de flyer
+superpuesto). Ambas se usaron como referencia/base para `$D evolve`, no se
+commitearon (quedan locales, sin uso en código todavía).
+
+**Decisión final aprobada:**
+- Copy reescrito con datos reales ya establecidos en el resto del sitio en vez
+  de adjetivos: headline nombra platos reales del menú (Ropa Vieja, Lechón
+  Asado, Cubano Sandwich — `lib/data/menu.ts`); los 4 badges de adjetivo se
+  reemplazan por 3 badges de hechos verificables (horario, zonas de servicio,
+  "Cotización en 24h" — ya existían en `hours_section`/`catering.success`).
+- Layout del Hero invertido: la imagen del truck ahora renderiza primero, el
+  texto/CTAs/badges quedan debajo — antes era al revés.
+- Imagen del Hero cambiada de `hero-cover.png` a `hero-truck.png`: un render de
+  IA del trailer real (misma forma que la foto blanca real) ya "rotulado" con un
+  logotipo pintado a mano estilo "¡Holalá!". **Esto es un concepto/adelanto, NO
+  una foto real** — el trailer físico sigue blanco sin marca hoy. El owner
+  decidió explícitamente subirlo igual para que la marca empiece a
+  reconocerse, aceptando el desajuste temporal con la realidad física hasta que
+  el trailer se rotule de verdad. Queda comentado en el código
+  (`app/[locale]/page.tsx`, sección Hero) para que quede claro en el futuro.
+- `hero-cover.png` se deja intacto — sigue en uso por `SocialCTA` (fondo
+  decorativo de la sección de Instagram). No se tocó esa sección esta sesión.
+
+**PR #6 mergeado** (`c17a271`) en dos commits: `31a76ee` (copy) y `02735cb`
+(layout + imagen).
+
+### Nota técnica — sandbox de Bash aislado del navegador real del owner
+`npm run dev` + `curl localhost:3000` desde el Bash tool devolvía 200 con el
+contenido correcto, pero el navegador real del owner en la misma máquina no veía
+el cambio — el proceso de Bash corre en un entorno/red aislado del navegador del
+usuario en este equipo. La verificación confiable fue: pushear a una rama, abrir
+PR, y confirmar el deployment de Vercel vía `mcp__plugin_vercel_vercel__get_deployment`
+(commit SHA + `readyState: READY`) — no localhost. Ver memoria
+`feedback-verify-ui-changes-via-deployment`.
+
+### Nota técnica — `browse`/`design-shotgun` necesitan Playwright chromium rev. 1208
+`npx playwright install chromium` instala la revisión más reciente (1228), pero
+el `playwright-core@1.58.2` que trae gstack (`~/.claude/skills/gstack/node_modules/`)
+espera la revisión **1208** tanto de `chromium` como de `chromium-headless-shell`.
+El mismatch da un error genérico ("Looks like Playwright Test or Playwright was
+just installed or updated") que no menciona la revisión real. Fix:
+`cd ~/.claude/skills/gstack && node_modules/.bin/playwright install chromium chromium-headless-shell`.
+La instalación de `chromium-headless-shell` quedó cancelada a pedido del owner
+esta sesión — `browse` puede seguir fallando hasta que se corra ese comando.
+
+### Nota — `/design-shotgun` requiere API key de OpenAI
+No había key configurada (`~/.gstack/openai.json` no existía). El owner pasó una
+key esta sesión, guardada localmente (no se commitea, no es secret del proyecto
+holala-web).
+
+### Estado al cerrar sesión
+```
+✅ PR #6 mergeado a main — Hero copy + layout + imagen actualizados
+✅ tsc --noEmit y npm run build limpios antes de cada push
+✅ Verificado en Vercel preview por el owner (confirmado en su navegador real)
+⏳ hero-truck.png es un render de IA — reemplazar por foto real una vez el
+   trailer físico esté rotulado/pintado de verdad
+⏳ SocialCTA (sección Instagram) sigue usando hero-cover.png (la ilustración
+   vieja) — no se tocó, podría quedar visualmente inconsistente con el nuevo
+   hero-truck.png — pendiente decisión del owner
+⏳ public/foodtruck_blanco_limpio_v2.png y public/Pollo Holala.jpeg quedan sin
+   commitear en el repo (referencias locales, no usadas en código aún)
+⏳ browse de gstack sigue roto en este equipo — falta instalar
+   chromium-headless-shell rev. 1208 (cancelado esta sesión)
+```
+
+---
+
 ## SESSION LOG — 2026-06-19 (sesión 9) — DESIGN.md: documentar sistema de diseño existente
 
 ### Qué se completó
