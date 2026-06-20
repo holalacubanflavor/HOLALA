@@ -22,6 +22,54 @@ npm install <package> --legacy-peer-deps
 
 ---
 
+## SESSION LOG — 2026-06-19 (sesión 9) — DESIGN.md: documentar sistema de diseño existente
+
+### Qué se completó
+
+**`/design-consultation` corrido sobre el sitio ya en producción** — el sitio no
+era un lienzo en blanco (paleta oficial ya definida, tipografía, componentes
+shippeados), así que en vez de proponer un sistema nuevo se eligió documentar
+el existente. Resultado: `DESIGN.md` en la raíz del repo, fuente de verdad para
+trabajo de UI futuro (manual o asistido por IA).
+
+Contenido principal de `DESIGN.md`:
+- Paleta de colores completa (Teal/Naranja/Rojo/Crema/Verde/Espresso) con hex,
+  rol de cada uno, y la regla de contraste del naranja (§2.1 — ver nota abajo).
+- Tipografía (Poppins cuerpo / Baloo 2 display), spacing, radios de borde
+  (píldora para CTAs vs. rectángulo suave para contenido), efectos (glow
+  tropical, sombra cálida).
+- Patrones de componente documentados con archivo de referencia: botones/CTA,
+  tarjetas, badges, formularios (`CateringForm.tsx`), nav, FAQ (`<details>`
+  nativo), header de página, caja de CTA secundaria.
+- Iconografía (lucide-react + emojis de categoría), imágenes, patrón bilingüe
+  (`_es`/`_en` vs. `next-intl`), superficie de admin (mismo sistema, sin
+  variante propia).
+- Sección "Open Items": `components/ui/button.tsx` (primitivo shadcn) no se
+  importa en ningún lado de la app — todo CTA real usa un patrón de píldora
+  manual en Tailwind en su lugar. Queda señalado, no se tocó.
+
+**Nota técnica — regla de contraste del naranja (ya conocida, ahora formalizada):**
+confirmado en `DEVNOTES.md` sesión 5 que `text-orange`/`text-orange-dark` sobre
+`bg-orange/10` o `/20` nunca alcanza 4.5:1 (WCAG AA) — luminancia del naranja
+(~0.32) hace que cualquier combinación tinte-claro-+-texto-naranja falle, sin
+importar la opacidad. `DESIGN.md` §2.1 deja esto como regla dura para cualquier
+badge/chip nuevo: invertir siempre a chip sólido (`bg-orange text-espresso` o
+`bg-espresso text-orange`, ambos ≈5.97:1).
+
+No se tocó código de componentes ni se cambiaron decisiones visuales — solo
+documentación de lo ya shippeado.
+
+### Estado al cerrar sesión
+```
+✅ DESIGN.md creado y commiteable — sistema de diseño existente documentado
+✅ Regla de contraste del naranja formalizada como regla dura (§2.1)
+✅ Open item señalado: components/ui/button.tsx sin uso real en la app
+⏳ Pendiente decisión del owner: adoptar o eliminar el Button de shadcn
+⏳ DESIGN.md sin commitear todavía — pendiente de confirmación para commit
+```
+
+---
+
 ## SESSION LOG — 2026-06-19 (sesión 8) — Square webhook Production + cierre migración
 
 ### Qué se completó
