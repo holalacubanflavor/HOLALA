@@ -8,9 +8,7 @@ import {
   ChevronRight,
   Clock,
   MapPin,
-  Sparkles,
-  Palmtree,
-  Heart,
+  Zap,
   Check,
   Users,
   Briefcase,
@@ -37,10 +35,9 @@ function Hero() {
   const t = useTranslations('home.hero');
 
   const badges = [
-    { icon: Sparkles, label: t('badge_authentic') },
-    { icon: Palmtree, label: t('badge_cuba') },
-    { icon: Heart, label: t('badge_passion') },
-    { icon: MapPin, label: t('badge_sa') },
+    { icon: Clock, label: t('badge_hours') },
+    { icon: MapPin, label: t('badge_areas') },
+    { icon: Zap, label: t('badge_quote') },
   ];
 
   return (
