@@ -13,14 +13,13 @@
     "hero": {
       "tagline": "Latin Tropical Street Food",
       "subtitle": "Cuban roots, modern flavor.",
-      "headline": "Cuban flavor, tropical vibes, San Antonio heart.",
-      "subheadline": "Cuban-Latin food truck with family recipes, tropical energy, and catering for memorable events.",
+      "headline": "Ropa Vieja, roasted pork, and pressed Cuban sandwiches - straight from the window.",
+      "subheadline": "Cuban food truck in San Antonio. Wednesday through Sunday, 4-10PM.",
       "cta_menu": "View Menu",
       "cta_catering": "Request Catering",
-      "badge_authentic": "Authentic flavors",
-      "badge_cuba": "Inspired by Cuba",
-      "badge_passion": "Made with passion",
-      "badge_sa": "San Antonio, TX"
+      "badge_hours": "Wed-Sun · 4-10PM",
+      "badge_areas": "Stone Oak · Alamo Heights · Downtown · Southtown",
+      "badge_quote": "Quote within 24h"
     },
     "hours_section": {
       "title": "When Can You Find Us?",
