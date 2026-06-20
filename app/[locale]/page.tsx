@@ -55,7 +55,23 @@ function Hero() {
         }}
       />
 
-      <div className="relative z-10 max-w-4xl mx-auto px-4 text-center">
+      {/* Framed brand cover — leads the section so the truck/brand is the first thing visitors see */}
+      <div className="relative z-10 max-w-6xl mx-auto px-4">
+        <div className="relative aspect-[4/3] sm:aspect-[16/9] lg:aspect-[21/9] rounded-3xl overflow-hidden ring-1 ring-cream/10 shadow-2xl shadow-black/40">
+          {/* AI-rendered concept of the trailer once vinyl-wrapped — the real trailer
+              is currently unbranded; swap for an actual photo once it's wrapped. */}
+          <Image
+            src="/brand/hero-truck.png"
+            alt="HOLALA Cuban Flavor — food truck cubano-latino en San Antonio, TX"
+            fill
+            priority
+            sizes="(max-width: 1024px) 100vw, 1152px"
+            className="object-cover object-center"
+          />
+        </div>
+      </div>
+
+      <div className="relative z-10 max-w-4xl mx-auto px-4 text-center mt-12 sm:mt-16">
         {/* Tagline chip */}
         <div className="inline-flex items-center gap-2 bg-teal/15 border border-teal/30 rounded-full px-4 py-1.5 mb-6">
           <span className="text-teal text-sm font-semibold tracking-wide uppercase">
@@ -99,20 +115,6 @@ function Hero() {
               {label}
             </span>
           ))}
-        </div>
-      </div>
-
-      {/* Framed brand cover */}
-      <div className="relative z-10 max-w-6xl mx-auto px-4 mt-12 sm:mt-16">
-        <div className="relative aspect-[4/3] sm:aspect-[16/9] lg:aspect-[21/9] rounded-3xl overflow-hidden ring-1 ring-cream/10 shadow-2xl shadow-black/40">
-          <Image
-            src="/brand/hero-cover.png"
-            alt="HOLALA Cuban Flavor — food truck cubano-latino en San Antonio, TX"
-            fill
-            priority
-            sizes="(max-width: 1024px) 100vw, 1152px"
-            className="object-cover object-center"
-          />
         </div>
       </div>
     </section>
