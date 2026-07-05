@@ -6,7 +6,7 @@ export default defineConfig({
   name: 'holala-cuban-flavor',
   title: 'HOLALA Cuban Flavor',
 
-  projectId: 'd082imwm',
+  projectId: 'mkk4lcmm',
   dataset: 'production',
 
   plugins: [
