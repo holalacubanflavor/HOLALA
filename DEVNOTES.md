@@ -22,6 +22,69 @@ npm install <package> --legacy-peer-deps
 
 ---
 
+## SESSION LOG — 2026-07-05 (sesión 13) — Sprint 2: catering pipeline + Resend + Edge Function
+
+### Qué se completó
+
+**Ítem 1 — Admin catering pipeline:**
+- `app/admin/(protected)/catering/page.tsx` — Server Component que lee `catering_leads`
+  de Supabase y renderiza un Kanban board con 5 columnas (Nuevo/Contactado/Cotizado/
+  Confirmado/Completado). Leads perdidos en sección colapsable al final.
+- `app/admin/(protected)/catering/LeadCard.tsx` — Client Component por lead: chips de
+  evento/fecha/personas/presupuesto, links tap-to-call y tap-to-email, textarea de notas
+  internas, dropdown de cambio de status.
+- `app/admin/actions.ts` — Server Actions `updateLeadStatus` + `saveAdminNotes`. Status
+  cambia on-select con `useTransition`; notas con botón "Guardar nota" + feedback "✓ Guardado".
+
+**Ítem 2 — Email automático Resend:**
+- `resend@6.17.1` instalado.
+- Email HTML de notificación al admin (`holalacubanflavor@gmail.com`) con todos los datos
+  del lead y botón "Ver en Admin Panel →".
+- Best-effort: si falla el email, el lead igual se guarda y la request devuelve success.
+- Secrets configurados en Supabase: `RESEND_API_KEY` + `RESEND_FROM_EMAIL`.
+  (También en Vercel como vars de entorno — quedaron de la implementación inicial en la
+  Vercel route antes de migrar a Edge Function.)
+
+**Ítem 3 — Migración `/api/catering` → Supabase Edge Function:**
+- `supabase/functions/catering-submit/index.ts` — Edge Function Deno con CORS, validación,
+  honeypot, insert en `catering_leads` (service role key), y notificación Resend vía
+  `fetch()` nativo (sin npm package).
+- Desplegada via MCP: `catering-submit` v1, ACTIVE, `verify_jwt=false`.
+- `CateringForm.tsx` actualizado: llama a
+  `${NEXT_PUBLIC_SUPABASE_URL}/functions/v1/catering-submit` en vez de `/api/catering`.
+- `app/api/catering/route.ts` eliminado — ya no hay Vercel route para catering.
+
+**Nota técnica — secrets Supabase en PowerShell:**
+`VAR=value npx ...` es sintaxis Bash, no funciona en PowerShell. Patrón correcto:
+```powershell
+$env:SUPABASE_ACCESS_TOKEN = "tu-PAT"
+npx supabase secrets set --project-ref rqpfqxmohdttghscoknh CLAVE="valor"
+```
+
+**Menú — 100% placeholder:**
+Confirmado que los 16 ítems de `lib/data/menu.ts` son placeholders. El dueño debe definir
+el menú real (ítems, precios, descripciones EN/ES) antes de cargar en Square y Sanity.
+Infraestructura lista (schema Sanity, tabla `products`, webhook Square) — solo falta contenido.
+
+### Commits de esta sesión
+- `1588a81` — feat: admin catering pipeline — live leads from Supabase (Sprint 2)
+- `d6d0e55` — feat: catering lead email notification via Resend (Sprint 2)
+- `9668ccb` — feat: migrate catering form to Supabase Edge Function (Sprint 2)
+
+### Estado al cerrar
+```
+✅ /admin/catering — Kanban con leads reales, status editable, notas internas
+✅ Email admin via Resend — RESEND_API_KEY + RESEND_FROM_EMAIL en Supabase secrets
+✅ Edge Function catering-submit — ACTIVE v1, reemplaza la Vercel route
+⏳ Ítem 4: Menú real — dueño debe definir ítems/precios/descripciones reales
+⏳ Ítem 4: Square catalog + Sanity Studio — pendiente menú real del dueño
+⏳ Ítem 4 (post-catálogo): yo leo Square Catalog API → lleno tabla products con square_catalog_id
+⏳ Ítem 5: Square Online Store embed en /menu — pendiente que dueño configure su tienda Square
+⏳ Square: confirmar primera venta real (webhook activo y probado, insert pendiente venta real)
+```
+
+---
+
 ## SESSION LOG — 2026-07-05 (sesión 12) — Admin login con Supabase Auth
 
 ### Qué se completó
@@ -806,6 +869,8 @@ Copia `.env.local.example` a `.env.local` y completa:
 | `NEXT_PUBLIC_SANITY_DATASET` | ✅ Default | `production` |
 | `NEXT_PUBLIC_GA4_MEASUREMENT_ID` | ✅ Configurada | `G-R0Q4D06G1F` (sesión 6, verificado en producción) |
 | `NEXT_PUBLIC_SITE_URL` | ✅ Configurada (código + Vercel Production) | `https://www.holalacubanflavor.com` (sesión 6) |
+| `RESEND_API_KEY` | ✅ Configurada (Vercel + Supabase secrets) | resend.com → API Keys (sesión 13) |
+| `RESEND_FROM_EMAIL` | ✅ Configurada (Vercel + Supabase secrets) | `noreply@holalacubanflavor.com` (sesión 13) |
 
 ---
 
@@ -862,10 +927,10 @@ Tablas activas: `products`, `sales`, `sale_items`, `customers`, `catering_leads`
 - [x] Lighthouse mobile ≥90 (sesión 5 — Perf 99 / A11y 96→100 / BP 100 / SEO 92 / Agentic 100)
 
 ### 🗓️ Sprint 2 (días 11-18)
-- [ ] Admin: catering pipeline completo (conectar Supabase real + leer leads)
+- [x] Admin: catering pipeline completo — Kanban con leads reales, status editable, notas internas (sesión 13)
 - [x] Implementar login admin con Supabase Auth — verificado en producción (sesión 12)
-- [ ] Email automático (Resend) — agregar al catering form handler
-- [ ] Migrar /api/catering → Supabase Edge Function (evitar límite 10s Vercel Hobby cuando se agregue Resend)
+- [x] Email automático (Resend) — notificación admin al llegar lead, RESEND_API_KEY+FROM en Supabase secrets (sesión 13)
+- [x] Migrar /api/catering → Supabase Edge Function `catering-submit` ACTIVE v1 (sesión 13)
 - [x] Square webhook Edge Function — código desplegado (ACTIVE), suscripción Production creada y 4 secrets configurados en `rqpfqxmohdttghscoknh`, test webhook 200 OK (ver sesión 8). Falta solo confirmar el insert completo con la primera venta real.
-- [ ] Square hardware + configuración
-- [ ] Square Online Store embed en /menu
+- [ ] Square hardware + configuración — dueño tiene el hardware, falta definir menú real y cargar catálogo en Square + Sanity
+- [ ] Square Online Store embed en /menu — pendiente que dueño configure su tienda Square Online
