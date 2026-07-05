@@ -1,6 +1,3 @@
-// Admin layout — protected by middleware.ts (Supabase Auth)
-// Sprint 2: implement full auth check with @supabase/ssr
-
 import type { Metadata } from 'next';
 import { Poppins, Baloo_2 } from 'next/font/google';
 import '../globals.css';
@@ -27,30 +24,11 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default function AdminRootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es" className={`${poppins.variable} ${baloo.variable}`}>
       <body className="font-body antialiased bg-background text-foreground">
-        <div className="min-h-screen bg-cream">
-          {/* Admin nav */}
-          <header className="bg-espresso border-b border-espresso-light px-6 py-3 flex items-center justify-between">
-            <span className="font-display font-bold text-cream text-lg">
-              HOLALA Admin
-            </span>
-            <nav className="flex items-center gap-4 text-sm">
-              <a href="/admin/dashboard" className="text-cream/70 hover:text-cream transition-colors">
-                Dashboard
-              </a>
-              <a href="/admin/catering" className="text-cream/70 hover:text-cream transition-colors">
-                Catering
-              </a>
-              <a href="/admin/menu" className="text-cream/70 hover:text-cream transition-colors">
-                Menú
-              </a>
-            </nav>
-          </header>
-          <main className="p-6">{children}</main>
-        </div>
+        {children}
       </body>
     </html>
   );

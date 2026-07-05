@@ -1,6 +1,3 @@
-// Admin Dashboard — Sprint 3: connect to Supabase sales data
-// Currently: skeleton UI with placeholder data
-
 export default function AdminDashboard() {
   return (
     <div className="max-w-4xl mx-auto">
@@ -24,9 +21,9 @@ export default function AdminDashboard() {
       </div>
 
       <div className="bg-teal/5 border border-teal/20 rounded-2xl p-5">
-        <p className="font-medium text-teal mb-2">🚀 Sprint 3: Square Integration</p>
+        <p className="font-medium text-teal mb-2">Sprint 3: Square Integration</p>
         <p className="text-sm text-muted-foreground">
-          Una vez configurado el webhook de Square, este dashboard mostrará ventas en tiempo real,
+          Una vez procesada la primera venta real, este dashboard mostrará ventas en tiempo real,
           top productos, y margen bruto por ítem.
         </p>
       </div>
