@@ -84,7 +84,8 @@ export default function CateringForm({ locale }: Props) {
     setFormState('submitting');
 
     try {
-      const res = await fetch('/api/catering', {
+      const edgeFnUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/catering-submit`;
+      const res = await fetch(edgeFnUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
