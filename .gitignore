@@ -42,3 +42,6 @@ dist/
 
 # supabase
 supabase/.temp/
+
+# claude code — local settings con tokens (nunca commitear)
+.claude/settings.local.json
