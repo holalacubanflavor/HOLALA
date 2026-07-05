@@ -22,6 +22,47 @@ npm install <package> --legacy-peer-deps
 
 ---
 
+## SESSION LOG — 2026-07-05 (sesión 12) — Admin login con Supabase Auth
+
+### Qué se completó
+
+**Admin login real — Sprint 2:**
+- `lib/supabase/client.ts` + `lib/supabase/server.ts` — helpers de cliente y servidor (`@supabase/ssr`)
+- `app/admin/actions.ts` — server actions `signIn` + `signOut`
+- Login form (`/admin/login`) — `useState` + `useTransition`, email/password, manejo de error
+- Route Group `(protected)`: dashboard y catering se mueven a `app/admin/(protected)/`
+  — login queda standalone sin header chrome
+  — dashboard + catering tienen header con botón "Salir" que llama `signOut`
+- Migración `010_admin_email_update.sql` — `is_admin()` actualizada a `holalacubanflavor@gmail.com`
+- El middleware ya estaba correctamente wired (`createServerClient` + `getSession`) — sin cambios
+
+**Nota técnica — `useActionState` incompatible con Next.js 14.2 + React 19:**
+`useActionState` de `react` falla durante static generation con el error
+`(0 , s.useActionState) is not a function or its return value is not iterable`.
+Next.js 14 prerendea páginas `use client` en el servidor y el hook no está disponible
+en ese contexto. Fix: usar `useState` + `useTransition` (compatible con React 18 y 19).
+
+**Cuenta de admin en Supabase Auth:** el owner creó el usuario `holalacubanflavor@gmail.com`
+manualmente en Supabase Dashboard → Authentication → Users → Add user (Auto Confirm ✅).
+
+### Commits de esta sesión
+- `918756e` — feat: admin login with Supabase Auth (Sprint 2)
+
+### Estado al cerrar
+```
+✅ /admin/login — form real, verificado por el owner
+✅ /admin/dashboard — con header + botón Salir
+✅ is_admin() → holalacubanflavor@gmail.com (migración 010 aplicada)
+⏳ Admin catering pipeline — conectar Supabase real (leer/actualizar leads)
+⏳ Email automático Resend — notificación al llegar lead de catering
+⏳ Migrar /api/catering → Supabase Edge Function (evitar límite 10s Vercel Hobby con Resend)
+⏳ Square: confirmar primera venta real (webhook activo, pasivo)
+⏳ Square hardware + configuración
+⏳ Square Online Store embed en /menu
+```
+
+---
+
 ## SESSION LOG — 2026-07-05 (sesión 11) — Migración completa a cuentas del cliente
 
 ### Qué se completó
@@ -822,7 +863,7 @@ Tablas activas: `products`, `sales`, `sale_items`, `customers`, `catering_leads`
 
 ### 🗓️ Sprint 2 (días 11-18)
 - [ ] Admin: catering pipeline completo (conectar Supabase real + leer leads)
-- [ ] Implementar login admin con Supabase Auth UI en /admin/login
+- [x] Implementar login admin con Supabase Auth — verificado en producción (sesión 12)
 - [ ] Email automático (Resend) — agregar al catering form handler
 - [ ] Migrar /api/catering → Supabase Edge Function (evitar límite 10s Vercel Hobby cuando se agregue Resend)
 - [x] Square webhook Edge Function — código desplegado (ACTIVE), suscripción Production creada y 4 secrets configurados en `rqpfqxmohdttghscoknh`, test webhook 200 OK (ver sesión 8). Falta solo confirmar el insert completo con la primera venta real.
