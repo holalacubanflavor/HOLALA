@@ -42,5 +42,3 @@ dist/
 
 # supabase
 supabase/.temp/
-
-.vercel

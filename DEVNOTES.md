@@ -22,6 +22,53 @@ npm install <package> --legacy-peer-deps
 
 ---
 
+## SESSION LOG — 2026-07-05 (sesión 11) — Migración completa a cuentas del cliente
+
+### Qué se completó
+
+**Contexto:** el proyecto existía en cuentas DigiSenda. Se migró todo a las cuentas
+propias del cliente (`holalacubanflavor`).
+
+**GitHub:** repo oficial pasó a ser `https://github.com/holalacubanflavor/HOLALA`.
+Digisenda agregado como colaborador para poder hacer push. Clonado fresco en
+`C:\Projects\01-Active\HOLALA` en el nuevo entorno.
+
+**Supabase:** proyecto `rqpfqxmohdttghscoknh` estaba `INACTIVE` (pausado). Se
+restauró via MCP. Sigue en org `holala` (ya migrado en sesión 7/8).
+
+**Sanity:** migrado de proyecto `d082imwm` (cuenta DigiSenda) a `mkk4lcmm`
+(cuenta cliente `holalacubanflavor`). Archivos actualizados:
+- `sanity.config.ts` → `projectId: 'mkk4lcmm'`
+- `sanity.cli.ts` → `projectId: 'mkk4lcmm'`
+- `.env.local` → `NEXT_PUBLIC_SANITY_PROJECT_ID=mkk4lcmm`
+Schema desplegado con token de API del cliente (`npx sanity schema deploy`).
+
+**Vercel:** deploy inicial en cuenta DigiSenda (`holala-cuban-flavor`) para
+desarrollo inmediato. Luego el cliente creó su cuenta Vercel y conectó
+`holalacubanflavor/HOLALA` → proyecto `holala/holala`
+(`prj_y8Xh6Rrnn3lbMIg7E2q4uOSBASSF`). Auto-deploy en push a `main` activo.
+Env vars configuradas en dashboard del cliente. Dominio `holalacubanflavor.com`
+apuntando via Cloudflare. Proyecto viejo en DigiSenda eliminado.
+
+**`vercel.json` creado** en raíz para declarar `"framework": "nextjs"` — necesario
+porque el CLI no detecta Next.js automáticamente sin integración GitHub activa.
+
+### Commits de esta sesión
+- `07860c1` — migración Sanity `d082imwm` → `mkk4lcmm`
+- `2592380` — `vercel.json` con `framework: nextjs`
+- `a2385b0` — commit vacío para forzar redeploy con env vars
+
+### Stack 100% en cuentas del cliente
+| Servicio | Cuenta/Proyecto |
+|----------|----------------|
+| GitHub | `holalacubanflavor/HOLALA` |
+| Sanity | `mkk4lcmm` (holalacubanflavor) |
+| Vercel | `holala/holala` — auto-deploy activo |
+| Supabase | `rqpfqxmohdttghscoknh` (org holala) |
+| Dominio | `holalacubanflavor.com` → Cloudflare → Vercel |
+
+---
+
 ## SESSION LOG — 2026-06-20 (sesión 10) — `/design-shotgun`: rediseño del Hero (copy + imagen)
 
 ### Qué se completó
