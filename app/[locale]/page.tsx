@@ -3,6 +3,8 @@ import Image from 'next/image';
 import type { Metadata } from 'next';
 import { Link } from '@/i18n/navigation';
 import { popularItems } from '@/lib/data/menu';
+import { getSanityClient } from '@/lib/sanity/client';
+import { POPULAR_ITEMS_QUERY } from '@/lib/sanity/queries';
 import {
   ArrowRight,
   ChevronRight,
@@ -20,7 +22,42 @@ import InstagramIcon from '@/components/icons/InstagramIcon';
 import JsonLd from '@/components/seo/JsonLd';
 import { restaurantSchema } from '@/lib/seo/schemas';
 
+export const revalidate = 1800;
+
 type Props = { params: Promise<{ locale: string }> };
+
+type PopularItem = {
+  _id: string;
+  name_es: string;
+  name_en: string;
+  description_es: string;
+  description_en: string;
+  price: number;
+  category: string;
+  imageUrl?: string | null;
+};
+
+async function fetchPopularItems(): Promise<PopularItem[]> {
+  const client = getSanityClient();
+  if (client) {
+    try {
+      const items = await client.fetch<PopularItem[]>(POPULAR_ITEMS_QUERY);
+      if (items && items.length > 0) return items;
+    } catch {
+      // Sanity unavailable — fall through to static data
+    }
+  }
+  return popularItems.slice(0, 6).map((item) => ({
+    _id: item.id,
+    name_es: item.name_es,
+    name_en: item.name_en,
+    description_es: item.description_es,
+    description_en: item.description_en,
+    price: item.price,
+    category: item.category,
+    imageUrl: null,
+  }));
+}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -154,9 +191,9 @@ function HoursStrip() {
 }
 
 // ─── Menu Preview ──────────────────────────────────────────────────────────────
-function MenuPreview({ locale }: { locale: string }) {
+function MenuPreview({ locale, items }: { locale: string; items: PopularItem[] }) {
   const t = useTranslations('home.menu_preview');
-  const featured = popularItems.slice(0, 4);
+  const featured = items.slice(0, 4);
 
   return (
     <section className="py-16 sm:py-20 px-4 max-w-7xl mx-auto">
@@ -172,17 +209,25 @@ function MenuPreview({ locale }: { locale: string }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {featured.map((item) => (
           <div
-            key={item.id}
+            key={item._id}
             className="group bg-white rounded-2xl overflow-hidden shadow-sm border border-border hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
           >
-            {/* Visual block — tropical gradient, reserved for future photo */}
-            <div className="relative h-32 bg-gradient-to-br from-teal via-teal-dark to-espresso flex items-center justify-center">
-              <UtensilsCrossed size={28} className="text-cream/25" />
-              {item.isPopular && (
-                <span className="absolute top-3 left-3 bg-orange text-espresso text-[11px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full">
-                  {t('badge_popular')}
-                </span>
+            {/* Visual block — photo from Sanity when available, gradient placeholder otherwise */}
+            <div className="relative h-32 bg-gradient-to-br from-teal via-teal-dark to-espresso flex items-center justify-center overflow-hidden">
+              {item.imageUrl ? (
+                <Image
+                  src={item.imageUrl}
+                  alt={locale === 'es' ? item.name_es : item.name_en}
+                  fill
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                  className="object-cover"
+                />
+              ) : (
+                <UtensilsCrossed size={28} className="text-cream/25" />
               )}
+              <span className="absolute top-3 left-3 bg-orange text-espresso text-[11px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full">
+                {t('badge_popular')}
+              </span>
             </div>
 
             <div className="p-5">
@@ -383,13 +428,14 @@ function SocialCTA() {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default async function HomePage({ params }: Props) {
   const { locale } = await params;
+  const popularMenuItems = await fetchPopularItems();
 
   return (
     <>
       <JsonLd data={restaurantSchema} />
       <Hero />
       <HoursStrip />
-      <MenuPreview locale={locale} />
+      <MenuPreview locale={locale} items={popularMenuItems} />
       <CateringCTA />
       <AboutTeaser />
       <SocialCTA />
