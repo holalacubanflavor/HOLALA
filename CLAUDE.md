@@ -98,7 +98,12 @@ supabase functions serve square-webhook
 - `SUPABASE_SERVICE_ROLE_KEY` — NUNCA en NEXT_PUBLIC_
 - `SQUARE_WEBHOOK_SIG_KEY` — en Supabase Edge Function Secrets (ver abajo)
 - `SQUARE_ENVIRONMENT=sandbox` en preview, `=production` en producción
-- `SENTRY_DSN` — en Vercel + Sentry wizard lo configura automáticamente en `sentry.client.config.ts`
+
+**Sentry — NO instalado (corregido 2026-07-08):**
+Este archivo mencionaba `SENTRY_DSN` como si estuviera configurado; no lo está — no hay
+dependencia `@sentry/*` ni `sentry.*.config.ts` en el repo. Decisión: no priorizarlo mientras
+el tráfico sea bajo — Vercel ya da logs de runtime/errores de las funciones (ver `vercel-holala`
+MCP). Revisar de nuevo si el negocio escala a más ubicaciones/tráfico.
 
 **Webhook URL para Square Developer Console (producción activa):**
 `https://rqpfqxmohdttghscoknh.supabase.co/functions/v1/square-webhook`
