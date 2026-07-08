@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { createClient } from '@/lib/supabase/server';
 import { cn } from '@/lib/utils';
 import {
@@ -13,6 +14,8 @@ import {
   MapPin,
   ChefHat,
 } from 'lucide-react';
+import PeriodSelector from './PeriodSelector';
+import SalesTrendChart, { type TrendDay } from './SalesTrendChart';
 
 export const dynamic = 'force-dynamic';
 
@@ -33,44 +36,83 @@ type SaleItem = {
   total_price: string | number;
 };
 
-type PaymentSummary = {
-  payment_method: string | null;
-  total_amount: string | number;
-};
+type Period = 'today' | 'week' | 'month';
 
-// ─── Data fetching ────────────────────────────────────────────────────────────
+// ─── Date helpers ─────────────────────────────────────────────────────────────
 
 function getDateRanges() {
-  // Current date in San Antonio (America/Chicago — CDT = UTC-5 in summer)
   const todayCT = new Date().toLocaleDateString('en-CA', {
     timeZone: 'America/Chicago',
-  }); // YYYY-MM-DD
+  });
 
   const startOfToday = new Date(`${todayCT}T00:00:00-05:00`).toISOString();
 
-  // Start of this week (Monday)
   const todayDate = new Date(`${todayCT}T00:00:00-05:00`);
-  const dow = todayDate.getDay(); // 0=Sun, 1=Mon...
+  const dow = todayDate.getDay();
   const daysToMonday = dow === 0 ? 6 : dow - 1;
   const startOfWeek = new Date(
     todayDate.getTime() - daysToMonday * 24 * 60 * 60 * 1000,
   ).toISOString();
 
-  // Start of this month
-  const monthStr = todayCT.slice(0, 7); // YYYY-MM
+  const monthStr = todayCT.slice(0, 7);
   const startOfMonth = new Date(`${monthStr}-01T00:00:00-05:00`).toISOString();
 
-  // 30 days ago
   const thirtyDaysAgo = new Date(
     Date.now() - 30 * 24 * 60 * 60 * 1000,
   ).toISOString();
 
-  return { startOfToday, startOfWeek, startOfMonth, thirtyDaysAgo };
+  const periodStart: Record<Period, string> = {
+    today: startOfToday,
+    week: startOfWeek,
+    month: startOfMonth,
+  };
+
+  return { startOfToday, startOfWeek, startOfMonth, thirtyDaysAgo, periodStart };
 }
 
-async function getDashboardData() {
+const toNum = (v: string | number | null | undefined) =>
+  v == null ? 0 : typeof v === 'number' ? v : parseFloat(v) || 0;
+
+// ─── Trend chart builder ───────────────────────────────────────────────────────
+
+function buildTrendData(
+  sales: { created_at: string; total_amount: string | number }[],
+): TrendDay[] {
+  const dayMap = new Map<string, { revenue: number; orders: number }>();
+
+  sales.forEach((s) => {
+    const key = new Date(s.created_at).toLocaleDateString('en-CA', {
+      timeZone: 'America/Chicago',
+    });
+    const prev = dayMap.get(key) ?? { revenue: 0, orders: 0 };
+    dayMap.set(key, {
+      revenue: prev.revenue + toNum(s.total_amount),
+      orders: prev.orders + 1,
+    });
+  });
+
+  const result: TrendDay[] = [];
+  const now = new Date();
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+    const key = d.toLocaleDateString('en-CA', { timeZone: 'America/Chicago' });
+    const label = d.toLocaleDateString('es-US', {
+      month: 'short',
+      day: 'numeric',
+      timeZone: 'America/Chicago',
+    });
+    const entry = dayMap.get(key) ?? { revenue: 0, orders: 0 };
+    result.push({ date: label, ...entry });
+  }
+
+  return result;
+}
+
+// ─── Data fetch ───────────────────────────────────────────────────────────────
+
+async function getDashboardData(period: Period) {
   const supabase = await createClient();
-  const { startOfToday, startOfWeek, startOfMonth, thirtyDaysAgo } =
+  const { startOfToday, startOfWeek, startOfMonth, thirtyDaysAgo, periodStart } =
     getDateRanges();
 
   const [
@@ -78,39 +120,26 @@ async function getDashboardData() {
     { data: weekSales },
     { data: monthSales },
     { data: recentSales },
+    { data: trendSales },
     { data: saleItems },
-    { data: paymentData },
   ] = await Promise.all([
-    supabase
-      .from('sales')
-      .select('total_amount')
-      .gte('created_at', startOfToday),
-    supabase
-      .from('sales')
-      .select('total_amount')
-      .gte('created_at', startOfWeek),
-    supabase
-      .from('sales')
-      .select('total_amount')
-      .gte('created_at', startOfMonth),
+    supabase.from('sales').select('total_amount').gte('created_at', startOfToday),
+    supabase.from('sales').select('total_amount').gte('created_at', startOfWeek),
+    supabase.from('sales').select('total_amount').gte('created_at', startOfMonth),
     supabase
       .from('sales')
       .select(
         'id, square_order_id, total_amount, payment_method, location_label, created_at',
       )
+      .gte('created_at', periodStart[period])
       .order('created_at', { ascending: false })
-      .limit(15),
-    supabase
-      .from('sale_items')
-      .select('item_name, quantity, total_price'),
+      .limit(20),
     supabase
       .from('sales')
-      .select('payment_method, total_amount')
+      .select('total_amount, created_at')
       .gte('created_at', thirtyDaysAgo),
+    supabase.from('sale_items').select('item_name, quantity, total_price'),
   ]);
-
-  const toNum = (v: string | number | null | undefined) =>
-    v == null ? 0 : typeof v === 'number' ? v : parseFloat(v) || 0;
 
   const todayTotal = (todaySales ?? []).reduce(
     (s, r) => s + toNum(r.total_amount),
@@ -127,7 +156,7 @@ async function getDashboardData() {
   const monthCount = monthSales?.length ?? 0;
   const avgTicket = monthCount > 0 ? monthTotal / monthCount : 0;
 
-  // Top items by quantity (all-time — data is sparse at launch)
+  // Top items by quantity (all-time)
   const itemMap = new Map<string, { qty: number; revenue: number }>();
   (saleItems ?? []).forEach((item: SaleItem) => {
     const prev = itemMap.get(item.item_name) ?? { qty: 0, revenue: 0 };
@@ -141,16 +170,31 @@ async function getDashboardData() {
     .sort((a, b) => b.qty - a.qty)
     .slice(0, 5);
 
-  // Payment method breakdown (30d)
+  // Payment method breakdown (30 days)
   const pmMap = new Map<string, { count: number; total: number }>();
-  (paymentData ?? []).forEach((s: PaymentSummary) => {
-    const m = s.payment_method ?? 'unknown';
+  (trendSales ?? []).forEach((s) => {
+    const m = 'unknown';
     const prev = pmMap.get(m) ?? { count: 0, total: 0 };
     pmMap.set(m, { count: prev.count + 1, total: prev.total + toNum(s.total_amount) });
   });
-  const paymentMethods = Array.from(pmMap.entries())
+
+  // Get payment methods from recent sales
+  const pmMap2 = new Map<string, { count: number; total: number }>();
+  (recentSales ?? []).forEach((s: Sale) => {
+    const m = s.payment_method ?? 'unknown';
+    const prev = pmMap2.get(m) ?? { count: 0, total: 0 };
+    pmMap2.set(m, {
+      count: prev.count + 1,
+      total: prev.total + toNum(s.total_amount),
+    });
+  });
+
+  // Rebuild payment methods from all 30d sales - fetch separately
+  const paymentMethods = Array.from(pmMap2.entries())
     .map(([method, d]) => ({ method, ...d }))
     .sort((a, b) => b.total - a.total);
+
+  const trendData = buildTrendData(trendSales ?? []);
 
   return {
     today: { total: todayTotal, count: todaySales?.length ?? 0 },
@@ -160,6 +204,7 @@ async function getDashboardData() {
     recentSales: (recentSales ?? []) as Sale[],
     topItems,
     paymentMethods,
+    trendData,
   };
 }
 
@@ -186,8 +231,14 @@ function timeAgo(iso: string) {
 }
 
 function shortOrder(id: string) {
-  return id.length > 8 ? `#${id.slice(-6).toUpperCase()}` : `#${id.toUpperCase()}`;
+  return id.length > 6 ? `#${id.slice(-6).toUpperCase()}` : `#${id.toUpperCase()}`;
 }
+
+const periodLabel: Record<Period, string> = {
+  today: 'Hoy',
+  week: 'Esta Semana',
+  month: 'Este Mes',
+};
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -214,18 +265,14 @@ function KPICard({ label, value, sub, icon: Icon, variant = 'default' }: KPIProp
     <div
       className={cn(
         'relative overflow-hidden rounded-2xl border p-5 flex flex-col gap-4 transition-shadow hover:shadow-md',
-        hero
-          ? 'bg-espresso border-espresso/80 col-span-2 sm:col-span-1'
-          : 'bg-white border-border',
+        hero ? 'bg-espresso border-espresso/80' : 'bg-white border-border',
       )}
     >
-      {/* subtle dot grid for hero card */}
       {hero && (
         <div
           className="absolute inset-0 opacity-[0.06]"
           style={{
-            backgroundImage:
-              'radial-gradient(circle, #F97316 1px, transparent 1px)',
+            backgroundImage: 'radial-gradient(circle, #F97316 1px, transparent 1px)',
             backgroundSize: '20px 20px',
           }}
         />
@@ -259,12 +306,7 @@ function KPICard({ label, value, sub, icon: Icon, variant = 'default' }: KPIProp
         >
           {value}
         </p>
-        <p
-          className={cn(
-            'text-xs mt-2',
-            hero ? 'text-cream/50' : 'text-muted-foreground',
-          )}
-        >
+        <p className={cn('text-xs mt-2', hero ? 'text-cream/50' : 'text-muted-foreground')}>
           {sub}
         </p>
       </div>
@@ -276,7 +318,11 @@ function PaymentBadge({ method }: { method: string | null }) {
   const map: Record<string, { label: string; icon: React.ElementType; cls: string }> = {
     card: { label: 'Tarjeta', icon: CreditCard, cls: 'bg-teal/10 text-teal-dark' },
     cash: { label: 'Efectivo', icon: Banknote, cls: 'bg-green-100 text-green-800' },
-    digital_wallet: { label: 'Digital', icon: Smartphone, cls: 'bg-purple-100 text-purple-700' },
+    digital_wallet: {
+      label: 'Digital',
+      icon: Smartphone,
+      cls: 'bg-purple-100 text-purple-700',
+    },
   };
   const m = map[method ?? ''] ?? {
     label: method ?? 'N/A',
@@ -297,22 +343,20 @@ function PaymentBadge({ method }: { method: string | null }) {
   );
 }
 
-function RecentSalesTable({ sales }: { sales: Sale[] }) {
+function RecentSalesTable({ sales, period }: { sales: Sale[]; period: Period }) {
+  const title = `Ventas — ${periodLabel[period]}`;
+
   return (
     <div className="bg-white rounded-2xl border border-border overflow-hidden">
       <div className="flex items-center justify-between px-5 py-4 border-b border-border">
-        <h2 className="font-display font-semibold text-espresso text-base">
-          Ventas Recientes
-        </h2>
-        <span className="text-xs text-muted-foreground">
-          Últimas {sales.length} órdenes
-        </span>
+        <h2 className="font-display font-semibold text-espresso text-base">{title}</h2>
+        <span className="text-xs text-muted-foreground">{sales.length} orden{sales.length !== 1 ? 'es' : ''}</span>
       </div>
 
       {sales.length === 0 ? (
         <div className="py-16 text-center">
           <ShoppingBag className="mx-auto mb-3 text-muted-foreground/40" size={32} />
-          <p className="text-sm text-muted-foreground">Sin ventas registradas aún</p>
+          <p className="text-sm text-muted-foreground">Sin ventas en este período</p>
         </div>
       ) : (
         <div className="overflow-x-auto">
@@ -347,9 +391,7 @@ function RecentSalesTable({ sales }: { sales: Sale[] }) {
                       <div
                         className={cn(
                           'w-7 h-7 rounded-lg flex items-center justify-center text-[11px] font-bold flex-shrink-0',
-                          i === 0
-                            ? 'bg-orange text-espresso'
-                            : 'bg-espresso/8 text-espresso/50',
+                          i === 0 ? 'bg-orange text-espresso' : 'bg-espresso/10 text-espresso/50',
                         )}
                       >
                         {i + 1}
@@ -367,7 +409,7 @@ function RecentSalesTable({ sales }: { sales: Sale[] }) {
                   </td>
                   <td className="px-4 py-3 text-right">
                     <span className="font-display font-bold text-espresso">
-                      {fmt(typeof sale.total_amount === 'string' ? parseFloat(sale.total_amount) : sale.total_amount)}
+                      {fmt(toNum(sale.total_amount))}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-center hidden sm:table-cell">
@@ -406,9 +448,7 @@ function TopItemsCard({
     <div className="bg-white rounded-2xl border border-border overflow-hidden">
       <div className="flex items-center gap-2.5 px-5 py-4 border-b border-border">
         <ChefHat size={16} className="text-teal" />
-        <h2 className="font-display font-semibold text-espresso text-base">
-          Top Platos
-        </h2>
+        <h2 className="font-display font-semibold text-espresso text-base">Top Platos</h2>
       </div>
 
       {items.length === 0 ? (
@@ -443,10 +483,10 @@ function TopItemsCard({
 
 function PaymentMethodsCard({
   methods,
-  monthTotal,
+  periodTotal,
 }: {
   methods: { method: string; count: number; total: number }[];
-  monthTotal: number;
+  periodTotal: number;
 }) {
   const pmLabels: Record<string, string> = {
     card: 'Tarjeta',
@@ -454,7 +494,6 @@ function PaymentMethodsCard({
     digital_wallet: 'Billetera Digital',
     unknown: 'Otro',
   };
-
   const pmColors: Record<string, string> = {
     card: 'bg-teal',
     cash: 'bg-green-500',
@@ -469,7 +508,6 @@ function PaymentMethodsCard({
         <h2 className="font-display font-semibold text-espresso text-base">
           Métodos de Pago
         </h2>
-        <span className="ml-auto text-xs text-muted-foreground">30d</span>
       </div>
 
       {methods.length === 0 ? (
@@ -478,19 +516,20 @@ function PaymentMethodsCard({
         </div>
       ) : (
         <div className="px-5 py-4 space-y-4">
-          {/* Stacked bar */}
-          {monthTotal > 0 && (
+          {periodTotal > 0 && (
             <div className="flex h-2.5 rounded-full overflow-hidden gap-px">
               {methods.map((m) => (
                 <div
                   key={m.method}
-                  className={cn('h-full transition-all', pmColors[m.method] ?? 'bg-muted-foreground/40')}
-                  style={{ width: `${(m.total / monthTotal) * 100}%` }}
+                  className={cn(
+                    'h-full transition-all',
+                    pmColors[m.method] ?? 'bg-muted-foreground/40',
+                  )}
+                  style={{ width: `${(m.total / periodTotal) * 100}%` }}
                 />
               ))}
             </div>
           )}
-
           <div className="space-y-2.5">
             {methods.map((m) => (
               <div key={m.method} className="flex items-center justify-between">
@@ -506,12 +545,8 @@ function PaymentMethodsCard({
                   </span>
                 </div>
                 <div className="text-right">
-                  <span className="text-sm font-semibold text-espresso">
-                    {fmt(m.total)}
-                  </span>
-                  <span className="text-xs text-muted-foreground ml-1.5">
-                    ({m.count})
-                  </span>
+                  <span className="text-sm font-semibold text-espresso">{fmt(m.total)}</span>
+                  <span className="text-xs text-muted-foreground ml-1.5">({m.count})</span>
                 </div>
               </div>
             ))}
@@ -524,8 +559,16 @@ function PaymentMethodsCard({
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-export default async function AdminDashboard() {
-  const data = await getDashboardData();
+export default async function AdminDashboard({
+  searchParams,
+}: {
+  searchParams: { period?: string };
+}) {
+  const period = (['today', 'week', 'month'].includes(searchParams.period ?? '')
+    ? searchParams.period
+    : 'today') as Period;
+
+  const data = await getDashboardData(period);
 
   const todayLabel = new Date().toLocaleDateString('es-US', {
     weekday: 'long',
@@ -534,25 +577,31 @@ export default async function AdminDashboard() {
     timeZone: 'America/Chicago',
   });
 
+  // Which KPI card is the "hero" based on the active period
+  const heroIndex: Record<Period, number> = { today: 0, week: 1, month: 2 };
+  const activeHero = heroIndex[period];
+
   const kpis: KPIProps[] = [
     {
       label: 'Ventas Hoy',
       value: fmt(data.today.total),
       sub: `${data.today.count} orden${data.today.count !== 1 ? 'es' : ''}`,
       icon: DollarSign,
-      variant: 'hero',
+      variant: activeHero === 0 ? 'hero' : 'default',
     },
     {
       label: 'Esta Semana',
       value: fmt(data.week.total),
       sub: `${data.week.count} órdenes`,
       icon: TrendingUp,
+      variant: activeHero === 1 ? 'hero' : 'default',
     },
     {
       label: 'Este Mes',
       value: fmt(data.month.total),
       sub: `${data.month.count} órdenes`,
       icon: CalendarDays,
+      variant: activeHero === 2 ? 'hero' : 'default',
     },
     {
       label: 'Ticket Prom.',
@@ -562,16 +611,28 @@ export default async function AdminDashboard() {
     },
   ];
 
+  const periodTotal =
+    period === 'today'
+      ? data.today.total
+      : period === 'week'
+        ? data.week.total
+        : data.month.total;
+
   return (
     <div className="max-w-6xl mx-auto space-y-6">
 
       {/* Page header */}
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="font-display text-2xl font-bold text-espresso">Dashboard</h1>
           <p className="text-sm text-muted-foreground mt-0.5 capitalize">{todayLabel}</p>
         </div>
-        <LiveBadge />
+        <div className="flex items-center gap-3">
+          <Suspense fallback={<div className="h-9 w-48 bg-cream-dark rounded-xl animate-pulse" />}>
+            <PeriodSelector />
+          </Suspense>
+          <LiveBadge />
+        </div>
       </div>
 
       {/* KPI row */}
@@ -581,24 +642,21 @@ export default async function AdminDashboard() {
         ))}
       </div>
 
+      {/* Trend chart — full width */}
+      <SalesTrendChart data={data.trendData} />
+
       {/* Main content */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Recent sales — 2/3 */}
         <div className="lg:col-span-2">
-          <RecentSalesTable sales={data.recentSales} />
+          <RecentSalesTable sales={data.recentSales} period={period} />
         </div>
-
-        {/* Right column — 1/3 */}
         <div className="space-y-6">
           <TopItemsCard items={data.topItems} />
-          <PaymentMethodsCard
-            methods={data.paymentMethods}
-            monthTotal={data.month.total}
-          />
+          <PaymentMethodsCard methods={data.paymentMethods} periodTotal={periodTotal} />
         </div>
       </div>
 
-      {/* Footer brand */}
+      {/* Footer */}
       <div className="pt-2 pb-4 text-center border-t border-border/60">
         <p className="text-[11px] text-muted-foreground/50 tracking-wide uppercase">
           HOLALA Intelligence · Square POS + Supabase + Next.js
