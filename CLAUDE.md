@@ -119,3 +119,50 @@ esa máquina (`juant`) que no existe en este equipo ni se commiteó al repo. No 
 copia disponible — el contenido relevante ya quedó reflejado en las migraciones
 de `supabase/migrations/` y en este archivo. Si se necesita el doc original,
 pedirlo al owner.
+
+## Estado del Proyecto (última actualización: 2026-07-08)
+
+### Completado y en producción
+
+**Sitio público (`https://www.holalacubanflavor.com`)**
+- Home page: Hero, Hours strip, MenuPreview (Sanity), CateringCTA, About teaser, Instagram CTA
+- Menú completo (`/es/menu`, `/en/menu`) — conectado a Sanity con fallback estático
+- Blog bilingüe (`/es/blog`, `/en/blog`) — 3 artículos publicados en Sanity
+- Formulario de catering 2 pasos → Supabase Edge Function → email via Resend
+- SEO: JSON-LD, metadata bilingüe, sitemap
+- Bilingüe completo (ES/EN) via next-intl v3
+
+**Admin (`/admin`)**
+- Dashboard: ventas en tiempo real desde Supabase (6 KPIs, period filter Hoy/Semana/Mes)
+- Sales trend chart: AreaChart 30 días (Recharts)
+- Pipeline de catering: leads desde Supabase, ordenados por fecha de evento
+
+**Integraciones**
+- Square webhook → Supabase Edge Function (producción activa, HMAC validado)
+- Sanity CMS: 16 platos publicados + 3 artículos de blog
+- Resend: notificaciones de leads de catering
+
+**Sanity Content Lake (projectId: `d082imwm`)**
+- `menuItem`: 16 documentos publicados (5 mains, 4 sides, 4 drinks, 3 desserts). 7 marcados `isPopular`.
+- `blogPost`: 3 documentos publicados (historia, recetas, cultura)
+- `scheduleItem`: pendiente de contenido
+- Item de prueba "Plato de prueba" desactivado (`isActive: false`)
+
+**Vercel**
+- Proyecto bajo cuenta `holalacubanflavor@gmail.com` (migrado desde cuenta de desarrollador)
+- Variables de entorno configuradas: SUPABASE_URL, SUPABASE_ANON_KEY, SANITY_PROJECT_ID, SANITY_DATASET, GA4_MEASUREMENT_ID, SITE_URL
+
+### Pendiente / Próximas sesiones
+
+- **Fotos del menú**: Ricardo sube imágenes desde Sanity Studio → aparecen automáticamente en tarjetas
+- **`customers` table**: poblar desde payload del webhook de Square (data pipeline)
+- **`location_label`**: mapear Square location ID `LHDV14TEF3QMK` → nombre legible (ej. "Food Truck")
+- **`scheduleItem`**: publicar horarios reales en Sanity para que aparezcan en el sitio
+- **`sanity schema deploy`**: falla con `missing grant deployStudio` — no bloquea (content API funciona), resolver via Sanity dashboard si se necesita Studio UI validation
+- **Logo en admin dashboard**: añadir branding HOLALA al header del admin
+- **GA4**: verificar que `G-R0Q4D06G1F` está activo y recibiendo eventos en Vercel
+
+### Reglas Sanity aprendidas
+- `schema deploy` requiere grant `sanity.project/deployStudio` — puede fallar incluso para el owner; no bloquea la creación de contenido via Content API
+- Crear/publicar documentos via MCP (`create_documents` + `publish_documents`) funciona sin schema deployado
+- Secrets y tokens de Sanity: autenticado como `holalacubanflavor@gmail.com` (cuenta del cliente)
