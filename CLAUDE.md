@@ -96,12 +96,19 @@ supabase functions serve square-webhook
 **Variables de entorno críticas:**
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` — OK en cliente
 - `SUPABASE_SERVICE_ROLE_KEY` — NUNCA en NEXT_PUBLIC_
-- `SQUARE_WEBHOOK_SIG_KEY` — en Supabase Secrets (no en Vercel)
+- `SQUARE_WEBHOOK_SIG_KEY` — en Supabase Edge Function Secrets (ver abajo)
 - `SQUARE_ENVIRONMENT=sandbox` en preview, `=production` en producción
 - `SENTRY_DSN` — en Vercel + Sentry wizard lo configura automáticamente en `sentry.client.config.ts`
 
-**Webhook URL para Square Developer Console:**
-`https://[supabase-project-ref].supabase.co/functions/v1/square-webhook`
+**Webhook URL para Square Developer Console (producción activa):**
+`https://rqpfqxmohdttghscoknh.supabase.co/functions/v1/square-webhook`
+
+**Secrets de Supabase — regla crítica (aprendida en sesión 14):**
+Los secrets de las Edge Functions van en **Settings → Edge Functions** del dashboard de Supabase, NO en Vault.
+- URL: `https://supabase.com/dashboard/project/rqpfqxmohdttghscoknh/settings/functions`
+- Secrets requeridos: `SQUARE_ACCESS_TOKEN`, `SQUARE_WEBHOOK_SIG_KEY`, `SQUARE_WEBHOOK_NOTIFICATION_URL`, `SQUARE_ENVIRONMENT`
+- La CLI de Supabase en este equipo está vinculada a otra cuenta — gestionar secrets solo via dashboard.
+- Al copiar la `SQUARE_WEBHOOK_SIG_KEY` desde Square, hacerlo con cuidado: caracteres invisibles rompen el HMAC silenciosamente con 401.
 
 ## Design Document
 
