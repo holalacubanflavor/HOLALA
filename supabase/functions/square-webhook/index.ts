@@ -3,6 +3,8 @@
 // Listens for `payment.updated` notifications, and for completed payments
 // fetches the related order from Square's Orders API and syncs it into
 // the `sales` / `sale_items` tables. Idempotent on `sales.square_order_id`.
+// Also best-effort syncs `customers` (visits/spend) when the order carries
+// a Square customer_id, and stamps `sales.location_label` from LOCATION_LABELS.
 //
 // Required secrets (set with `supabase secrets set ...`):
 //   SQUARE_ACCESS_TOKEN              - Square API access token
@@ -23,6 +25,12 @@ const SQUARE_API_VERSION = "2024-12-18";
 const SQUARE_API_BASE = SQUARE_ENVIRONMENT === "production"
   ? "https://connect.squareup.com"
   : "https://connect.squareupsandbox.com";
+
+// Square location ID -> human-readable label. Add entries here as HOLALA
+// opens new locations (see CLAUDE.md "Pendiente" for tracking).
+const LOCATION_LABELS: Record<string, string> = {
+  LHDV14TEF3QMK: "Food Truck",
+};
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -81,6 +89,62 @@ async function fetchOrder(orderId: string) {
   return order;
 }
 
+async function fetchCustomer(customerId: string) {
+  const res = await fetch(`${SQUARE_API_BASE}/v2/customers/${customerId}`, {
+    headers: {
+      "Authorization": `Bearer ${SQUARE_ACCESS_TOKEN}`,
+      "Square-Version": SQUARE_API_VERSION,
+    },
+  });
+  if (!res.ok) {
+    throw new Error(`Square customer fetch failed: ${res.status} ${await res.text()}`);
+  }
+  const { customer } = await res.json();
+  return customer;
+}
+
+// Upserts customers.total_visits / total_spent for a completed order. Only
+// called for newly-inserted sales (see `upserted` guard at the call site) so
+// a webhook retry never double-counts a visit.
+async function syncCustomer(customerId: string, orderCreatedAt: string, saleAmount: number) {
+  const customer = await fetchCustomer(customerId);
+  const name = [customer.given_name, customer.family_name].filter(Boolean).join(" ") || null;
+
+  const { data: existing, error: fetchError } = await supabase
+    .from("customers")
+    .select("id, total_visits, total_spent")
+    .eq("square_customer_id", customerId)
+    .maybeSingle();
+  if (fetchError) throw fetchError;
+
+  if (existing) {
+    const { error } = await supabase
+      .from("customers")
+      .update({
+        name: name ?? undefined,
+        email: customer.email_address ?? undefined,
+        phone: customer.phone_number ?? undefined,
+        total_visits: (existing.total_visits ?? 0) + 1,
+        total_spent: Number(existing.total_spent ?? 0) + saleAmount,
+        last_visit_at: orderCreatedAt,
+      })
+      .eq("id", existing.id);
+    if (error) throw error;
+  } else {
+    const { error } = await supabase.from("customers").insert({
+      square_customer_id: customerId,
+      name,
+      email: customer.email_address ?? null,
+      phone: customer.phone_number ?? null,
+      total_visits: 1,
+      total_spent: saleAmount,
+      first_visit_at: orderCreatedAt,
+      last_visit_at: orderCreatedAt,
+    });
+    if (error) throw error;
+  }
+}
+
 function money(amountMoney?: { amount?: number }): number {
   return (amountMoney?.amount ?? 0) / 100;
 }
@@ -118,6 +182,8 @@ Deno.serve(async (req) => {
 
   try {
     const order = await fetchOrder(payment.order_id);
+    const locationId = payment.location_id ?? order.location_id ?? null;
+    const totalAmount = money(payment.amount_money);
 
     const { data: upserted, error: saleError } = await supabase
       .from("sales")
@@ -125,11 +191,12 @@ Deno.serve(async (req) => {
         {
           square_order_id: order.id,
           square_payment_id: payment.id,
-          total_amount: money(payment.amount_money),
+          total_amount: totalAmount,
           tax_amount: money(order.total_tax_money),
           tip_amount: money(payment.tip_money),
           payment_method: payment.source_type?.toLowerCase() ?? null,
-          square_location_id: payment.location_id ?? order.location_id ?? null,
+          square_location_id: locationId,
+          location_label: locationId ? LOCATION_LABELS[locationId] ?? null : null,
           created_at: order.created_at,
         },
         { onConflict: "square_order_id", ignoreDuplicates: true },
@@ -204,6 +271,16 @@ Deno.serve(async (req) => {
 
         const { error: itemsError } = await supabase.from("sale_items").insert(saleItems);
         if (itemsError) throw itemsError;
+      }
+    }
+
+    // Best-effort: a customer sync failure shouldn't turn a successful sale
+    // sync into a 500 (which would make Square retry and re-process items).
+    if (upserted && order.customer_id) {
+      try {
+        await syncCustomer(order.customer_id, order.created_at, totalAmount);
+      } catch (customerErr) {
+        console.error("square-webhook customer sync error:", customerErr);
       }
     }
 

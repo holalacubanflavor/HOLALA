@@ -138,7 +138,7 @@ pedirlo al owner.
 - Pipeline de catering: leads desde Supabase, ordenados por fecha de evento
 
 **Integraciones**
-- Square webhook → Supabase Edge Function (producción activa, HMAC validado)
+- Square webhook → Supabase Edge Function (producción activa, HMAC validado, v20 — sync de `customers` + `location_label` desde sesión 2026-07-08)
 - Sanity CMS: 16 platos publicados + 3 artículos de blog
 - Resend: notificaciones de leads de catering
 
@@ -160,8 +160,6 @@ pedirlo al owner.
   3. Borrar los `menuItem` placeholder en Sanity y cargar el menú real (marcar `isPopular` en algunos para que el home no quede vacío).
   4. **Evaluar en ese momento** si vale la pena construir un sync automático Square↔Sanity (hoy no existe y no está planeado — son dos pipelines independientes; decisión pendiente de tomar cuando haya catálogo real con el que probarlo).
 - **Fotos del menú**: Ricardo sube imágenes desde Sanity Studio → aparecen automáticamente en tarjetas
-- **`customers` table**: poblar desde payload del webhook de Square (data pipeline)
-- **`location_label`**: mapear Square location ID `LHDV14TEF3QMK` → nombre legible (ej. "Food Truck")
 - **`scheduleItem`**: publicar horarios reales en Sanity para que aparezcan en el sitio
 - **`sanity schema deploy`**: falla con `missing grant deployStudio` — no bloquea (content API funciona), resolver via Sanity dashboard si se necesita Studio UI validation
 - **Logo en admin dashboard**: añadir branding HOLALA al header del admin
