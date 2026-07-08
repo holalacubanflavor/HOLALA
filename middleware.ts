@@ -20,11 +20,12 @@ export default async function middleware(request: NextRequest) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-    // If Supabase is not yet configured (dev/staging without env vars),
-    // allow access so the skeleton UI is still viewable during development.
-    // IMPORTANT: Remove this bypass before launch or once env vars are set.
+    // Fail closed: if Supabase env vars are missing, treat as unauthenticated
+    // rather than letting requests through unchecked.
     if (!supabaseUrl || !supabaseKey) {
-      return NextResponse.next();
+      const loginUrl = new URL('/admin/login', request.url);
+      loginUrl.searchParams.set('redirectTo', pathname);
+      return NextResponse.redirect(loginUrl);
     }
 
     const response = NextResponse.next();

@@ -154,6 +154,11 @@ pedirlo al owner.
 
 ### Pendiente / Próximas sesiones
 
+- **🔴 URGENTE — Menú real → Square → `products` (Sprint 4, bloqueado en dueño)**: el menú definitivo aún no está finalizado ni cargado en Square (el hardware ya lo tiene el dueño, falta el catálogo). Los ~17 `menuItem` en Sanity son placeholders del sitio viejo, no el menú final (ver nota de sesión 2026-07-08). Orden de trabajo una vez el dueño defina el menú:
+  1. Cargar el catálogo real en Square (fuente de verdad operativa: precios, catálogo).
+  2. Construir el sync Square catálogo → Supabase `products` (tabla ya existe con `food_cost`/`square_catalog_id`, hoy en 0 filas — sin esto no hay food cost/márgenes reales).
+  3. Borrar los `menuItem` placeholder en Sanity y cargar el menú real (marcar `isPopular` en algunos para que el home no quede vacío).
+  4. **Evaluar en ese momento** si vale la pena construir un sync automático Square↔Sanity (hoy no existe y no está planeado — son dos pipelines independientes; decisión pendiente de tomar cuando haya catálogo real con el que probarlo).
 - **Fotos del menú**: Ricardo sube imágenes desde Sanity Studio → aparecen automáticamente en tarjetas
 - **`customers` table**: poblar desde payload del webhook de Square (data pipeline)
 - **`location_label`**: mapear Square location ID `LHDV14TEF3QMK` → nombre legible (ej. "Food Truck")

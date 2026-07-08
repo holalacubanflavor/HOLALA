@@ -932,5 +932,9 @@ Tablas activas: `products`, `sales`, `sale_items`, `customers`, `catering_leads`
 - [x] Email automático (Resend) — notificación admin al llegar lead, RESEND_API_KEY+FROM en Supabase secrets (sesión 13)
 - [x] Migrar /api/catering → Supabase Edge Function `catering-submit` ACTIVE v1 (sesión 13)
 - [x] Square webhook Edge Function — código desplegado (ACTIVE), suscripción Production creada y 4 secrets configurados en `rqpfqxmohdttghscoknh`, test webhook 200 OK (ver sesión 8). Falta solo confirmar el insert completo con la primera venta real.
-- [ ] Square hardware + configuración — dueño tiene el hardware, falta definir menú real y cargar catálogo en Square + Sanity
+- [ ] **🔴 Square hardware + configuración (URGENTE, bloqueado en dueño)** — dueño tiene el hardware, falta definir menú real y cargar catálogo. Desglose (ver `CLAUDE.md` → Pendiente/Próximas sesiones, nota 2026-07-08):
+  - [ ] Cargar catálogo real en Square
+  - [ ] Sync Square catálogo → Supabase `products` (food cost/márgenes — tabla vacía hoy)
+  - [ ] Borrar `menuItem` placeholder en Sanity y cargar menú real
+  - [ ] Evaluar en ese momento si conviene un sync automático Square↔Sanity (no existe hoy, no está decidido)
 - [ ] Square Online Store embed en /menu — pendiente que dueño configure su tienda Square Online
