@@ -44,7 +44,7 @@ La filosofía central es: **usar herramientas maduras para operar, pero construi
 - **Framework:** Next.js 14 App Router + TypeScript + Tailwind CSS + shadcn/ui
 - **Hosting:** Vercel (Hobby free tier → Pro $20/mes cuando escale)
 - **Base de datos:** Supabase PostgreSQL + Auth + Edge Functions (Deno runtime)
-- **CMS:** Sanity (free tier) — el dueño edita menú/blog sin código
+- **CMS:** Sanity (free tier, projectId: `d082imwm`) — el dueño edita menú/blog sin código
 - **Bilingüe:** next-intl v3 — API `createNavigation` — rutas `/es/` y `/en/`
 - **Email:** Resend (3k/mes gratis)
 - **POS:** Square (operativo, no estratégico) → webhook → Supabase
