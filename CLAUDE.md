@@ -125,7 +125,7 @@ copia disponible — el contenido relevante ya quedó reflejado en las migracion
 de `supabase/migrations/` y en este archivo. Si se necesita el doc original,
 pedirlo al owner.
 
-## Estado del Proyecto (última actualización: 2026-07-08)
+## Estado del Proyecto (última actualización: 2026-07-09)
 
 ### Completado y en producción
 
@@ -141,6 +141,13 @@ pedirlo al owner.
 - Dashboard: ventas en tiempo real desde Supabase (6 KPIs, period filter Hoy/Semana/Mes)
 - Sales trend chart: AreaChart 30 días (Recharts)
 - Pipeline de catering: leads desde Supabase, ordenados por fecha de evento
+- Logo HOLALA en el header del admin (sesión 2026-07-08)
+
+**Seguridad (endurecida sesión 2026-07-08)**
+- Middleware admin falla cerrado si faltan env vars de Supabase (antes dejaba pasar sin auth)
+- `rls_auto_enable()` ya no ejecutable vía RPC público (`anon`/`authenticated`)
+- `is_admin()` recuperó `SET search_path = public` (se había perdido silenciosamente en migración 010)
+- Historial de migraciones de Supabase limpiado (9 migraciones de prueba `test_*` eliminadas, sin objetos reales asociados)
 
 **Integraciones**
 - Square webhook → Supabase Edge Function (producción activa, HMAC validado, v20 — sync de `customers` + `location_label` desde sesión 2026-07-08)
@@ -148,7 +155,7 @@ pedirlo al owner.
 - Resend: notificaciones de leads de catering
 
 **Sanity Content Lake (projectId: `d082imwm`)**
-- `menuItem`: 16 documentos publicados (5 mains, 4 sides, 4 drinks, 3 desserts). 7 marcados `isPopular`.
+- `menuItem`: 17 documentos publicados. 7 marcados `isPopular`. **Son placeholders del sitio viejo, no el menú final** — se borrarán cuando el dueño defina el menú real (ver Pendiente).
 - `blogPost`: 3 documentos publicados (historia, recetas, cultura)
 - `scheduleItem`: pendiente de contenido
 - Item de prueba "Plato de prueba" desactivado (`isActive: false`)
@@ -156,6 +163,12 @@ pedirlo al owner.
 **Vercel**
 - Proyecto bajo cuenta `holalacubanflavor@gmail.com` (migrado desde cuenta de desarrollador)
 - Variables de entorno configuradas: SUPABASE_URL, SUPABASE_ANON_KEY, SANITY_PROJECT_ID, SANITY_DATASET, GA4_MEASUREMENT_ID, SITE_URL
+
+**MCP servers scoped a este proyecto (sesión 2026-07-08/09)**
+- `mcp__supabase-holala__*` — SQL, deploy de Edge Functions, logs, advisors (Supabase project `rqpfqxmohdttghscoknh`)
+- `mcp__vercel-holala__*` — proyecto Vercel `holala/holala`, logueado y conectado
+- `mcp__sanity-holala__*` — cuenta `holalacubanflavor@gmail.com`, logueado y conectado
+- Los tres en scope local (`claude mcp list -s local`) — privados a este proyecto, no afectan la cuenta digisenda global
 
 ### Pendiente / Próximas sesiones
 
@@ -167,8 +180,9 @@ pedirlo al owner.
 - **Fotos del menú**: Ricardo sube imágenes desde Sanity Studio → aparecen automáticamente en tarjetas
 - **`scheduleItem`**: publicar horarios reales en Sanity para que aparezcan en el sitio
 - **`sanity schema deploy`**: falla con `missing grant deployStudio` — no bloquea (content API funciona), resolver via Sanity dashboard si se necesita Studio UI validation
-- **Logo en admin dashboard**: añadir branding HOLALA al header del admin
 - **GA4**: verificar que `G-R0Q4D06G1F` está activo y recibiendo eventos en Vercel
+- **Leaked password protection**: desactivada en Supabase Auth — activar manualmente en dashboard (Settings → Auth → Password Security), no requiere código
+- **Impresora de recibos**: dueño evaluando compra — solo Star Micronics (recomendado: TSP143IV UE o mC-Print3) y Epson están certificados por Square; marcas genéricas (ej. "ERARROW") NO son compatibles con la app de Square aunque usen USB/BT/WiFi estándar
 
 ### Reglas Sanity aprendidas
 - `schema deploy` requiere grant `sanity.project/deployStudio` — puede fallar incluso para el owner; no bloquea la creación de contenido via Content API
