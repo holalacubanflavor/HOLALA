@@ -125,7 +125,7 @@ copia disponible — el contenido relevante ya quedó reflejado en las migracion
 de `supabase/migrations/` y en este archivo. Si se necesita el doc original,
 pedirlo al owner.
 
-## Estado del Proyecto (última actualización: 2026-07-09)
+## Estado del Proyecto (última actualización: 2026-07-09, sesión 17)
 
 ### Completado y en producción
 
@@ -141,7 +141,7 @@ pedirlo al owner.
 - Dashboard: ventas en tiempo real desde Supabase (6 KPIs, period filter Hoy/Semana/Mes)
 - Sales trend chart: AreaChart 30 días (Recharts)
 - Pipeline de catering: leads desde Supabase, ordenados por fecha de evento
-- Logo HOLALA en el header del admin (sesión 2026-07-08)
+- Logo HOLALA en el header del admin, con chip crema circular para contraste sobre el fondo espresso (sesión 2026-07-09) — el SVG del logo es un badge oscuro, sin fondo claro detrás se pierde visualmente
 
 **Seguridad (endurecida sesión 2026-07-08)**
 - Middleware admin falla cerrado si faltan env vars de Supabase (antes dejaba pasar sin auth)
