@@ -108,7 +108,7 @@ interface SquareCategory {
 }
 
 async function searchCatalog(): Promise<{ items: SquareItem[]; categories: SquareCategory[] }> {
-  const res = await fetch(`${SQUARE_API_BASE}/v2/catalog/search-catalog-objects`, {
+  const res = await fetch(`${SQUARE_API_BASE}/v2/catalog/search`, {
     method: "POST",
     headers: {
       "Authorization": `Bearer ${SQUARE_ACCESS_TOKEN}`,
