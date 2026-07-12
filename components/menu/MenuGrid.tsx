@@ -6,8 +6,29 @@ import { cn } from '@/lib/utils';
 import { Leaf } from 'lucide-react';
 import Image from 'next/image';
 
-export type MenuCategory = 'mains' | 'sides' | 'drinks' | 'desserts' | 'specials';
+export type MenuCategory =
+  | 'specials'
+  | 'appetizers'
+  | 'tacos'
+  | 'sandwiches'
+  | 'mains'
+  | 'seafood'
+  | 'sides'
+  | 'desserts'
+  | 'drinks';
 type CategoryFilter = MenuCategory | 'all';
+
+const CATEGORY_ORDER: MenuCategory[] = [
+  'specials',
+  'appetizers',
+  'tacos',
+  'sandwiches',
+  'mains',
+  'seafood',
+  'sides',
+  'desserts',
+  'drinks',
+];
 
 export interface MenuItemData {
   _id: string;
@@ -24,11 +45,15 @@ export interface MenuItemData {
 
 const CATEGORY_EMOJIS: Record<CategoryFilter, string> = {
   all: '🍽️',
-  mains: '🥘',
-  sides: '🍟',
-  drinks: '🥤',
-  desserts: '🍮',
   specials: '⭐',
+  appetizers: '🥟',
+  tacos: '🌮',
+  sandwiches: '🥪',
+  mains: '🥘',
+  seafood: '🦐',
+  sides: '🍟',
+  desserts: '🍮',
+  drinks: '🥤',
 };
 
 export default function MenuGrid({ items }: { items: MenuItemData[] }) {
@@ -36,15 +61,13 @@ export default function MenuGrid({ items }: { items: MenuItemData[] }) {
   const locale = useLocale();
   const [activeCategory, setActiveCategory] = useState<CategoryFilter>('all');
 
-  const hasSpecials = items.some((i) => i.category === 'specials');
+  const presentCategories = CATEGORY_ORDER.filter((cat) =>
+    items.some((item) => item.category === cat)
+  );
 
   const categories: { key: CategoryFilter; label: string }[] = [
     { key: 'all', label: t('categories.all') },
-    { key: 'mains', label: t('categories.mains') },
-    { key: 'sides', label: t('categories.sides') },
-    { key: 'drinks', label: t('categories.drinks') },
-    { key: 'desserts', label: t('categories.desserts') },
-    ...(hasSpecials ? [{ key: 'specials' as const, label: t('categories.specials') }] : []),
+    ...presentCategories.map((key) => ({ key, label: t(`categories.${key}`) })),
   ];
 
   const filtered =

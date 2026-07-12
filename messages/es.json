@@ -67,10 +67,15 @@
     "subtitle": "Cuban roots, modern flavor",
     "categories": {
       "all": "Todo",
-      "mains": "Platos Principales",
+      "specials": "Sugerencia de la Casa",
+      "appetizers": "Antojitos",
+      "tacos": "Tacos",
+      "sandwiches": "Sándwiches",
+      "mains": "Especialidades de la Casa",
+      "seafood": "Del Mar",
       "sides": "Contornos",
-      "drinks": "Bebidas",
-      "desserts": "Postres"
+      "desserts": "Postres",
+      "drinks": "Bebidas"
     },
     "price_label": "Precio",
     "order_cta": "Ordenar ahora"

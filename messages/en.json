@@ -67,10 +67,15 @@
     "subtitle": "Cuban roots, modern flavor",
     "categories": {
       "all": "All",
-      "mains": "Main Dishes",
+      "specials": "House Special",
+      "appetizers": "Appetizers",
+      "tacos": "Tacos",
+      "sandwiches": "Sandwiches",
+      "mains": "House Specialties",
+      "seafood": "Seafood",
       "sides": "Sides",
-      "drinks": "Drinks",
-      "desserts": "Desserts"
+      "desserts": "Desserts",
+      "drinks": "Drinks"
     },
     "price_label": "Price",
     "order_cta": "Order now"
