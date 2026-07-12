@@ -125,7 +125,7 @@ copia disponible — el contenido relevante ya quedó reflejado en las migracion
 de `supabase/migrations/` y en este archivo. Si se necesita el doc original,
 pedirlo al owner.
 
-## Estado del Proyecto (última actualización: 2026-07-09, sesión 17)
+## Estado del Proyecto (última actualización: 2026-07-12, sesión 18)
 
 ### Completado y en producción
 
@@ -151,14 +151,31 @@ pedirlo al owner.
 
 **Integraciones**
 - Square webhook → Supabase Edge Function (producción activa, HMAC validado, v20 — sync de `customers` + `location_label` desde sesión 2026-07-08)
-- Sanity CMS: 16 platos publicados + 3 artículos de blog
+- Sanity CMS: 20 platos del menú real publicados + 3 artículos de blog
 - Resend: notificaciones de leads de catering
+- Square catálogo → Supabase `products` (Edge Function `square-catalog-sync`, botón manual en `/admin` — ver sesión 2026-07-12 abajo)
+
+**Menú real cargado en las 3 capas (Sprint 4 completado, sesión 2026-07-12)**
+El dueño proveyó la foto del menú real (`menu holala.jpeg`, transcrito en `HOLALA_menu_inicial_extraido.md`). Con eso se cargó:
+- **Sanity** (`menuItem`): 20 documentos reales, reemplazando los 17 placeholders del sitio viejo (borrados). "Pollo Holalá" marcado `isPopular`.
+- **Square** (merchant `MLTW1B91M2RC4` "Holala Cuban Flavors", location `LHDV14TEF3QMK`): 7 categorías + 20 ítems (Tostones Rellenos con 2 variaciones: Atún/Camarón). Ítem de prueba "Té helado" eliminado.
+- **Supabase `products`**: 21 filas (20 platos, 21 porque Tostones cuenta 2 variaciones), sincronizadas desde Square vía la función `square-catalog-sync` — botón "Sincronizar desde Square" en el dashboard de `/admin` (`app/admin/(protected)/dashboard/MenuSyncButton.tsx`). La función preserva `food_cost`/`is_popular`/`image_url` en cada re-sync (curados a mano, nunca sobreescritos).
+
+**Categorías extendidas de 5 a 9** en los tres sistemas para reflejar la estructura real del menú (antes solo `mains/sides/drinks/desserts/specials`): se agregaron `appetizers`, `tacos`, `sandwiches`, `seafood`. Cambiado en `sanity/schema/menuItem.ts`, `components/menu/MenuGrid.tsx` (tabs ahora dinámicos según categorías presentes), `messages/{es,en}.json`, y el `CHECK` constraint de `products.category` (migración `013_extend_products_category_check.sql`).
+
+**Gaps conocidos, dejados pendientes a propósito:**
+- 3 bebidas (Jugos, Agua, Refrescos) no están cargadas en ningún lado — la foto del menú no trae precio ("por definir"). Agregar cuando el dueño confirme precios.
+- Los acompañantes incluidos (Congrí, Yuca con Mojo, Ensalada) no son `menuItem`/productos independientes — son notas de "todo plato incluye X" en la imagen del menú, no ítems vendibles por separado.
+- `square-catalog-sync` tiene un mapa estático ES→EN (`EN_COPY` en el archivo de la función) porque Square no tiene campos bilingües — si se agrega un plato nuevo directo en Square sin actualizar ese mapa, el sitio le mostrará el nombre en español como si fuera el inglés hasta que se corrija.
+- El Studio de Sanity todavía no muestra las 4 categorías nuevas en su selector (el problema pre-existente de `sanity schema deploy` con el grant `deployStudio` sigue sin resolver) — la Content API y el sitio ya las usan bien, pero si Ricardo intenta agregar un plato nuevo desde Studio con una de esas categorías, no la va a ver en el picker.
+
+**Sanity — proyecto migrado de organización (sesión 2026-07-12)**
+El proyecto `d082imwm` vivía bajo la organización personal de digisenda (el desarrollador), nunca bajo la cuenta real del dueño — por eso `mcp__sanity-holala__` fallaba con errores de acceso/organización. Se transfirió a la organización real de Ricardo (`outmeacZe`, ligada a `holalacubanflavor@gmail.com`). Ojo: existe una organización *distinta* también llamada "Ricardo Pupo" (`oN5zwGS2F`) visible desde la cuenta de digisenda — es un duplicado/accidente, no confundir con la real (`outmeacZe`).
 
 **Sanity Content Lake (projectId: `d082imwm`)**
-- `menuItem`: 17 documentos publicados. 7 marcados `isPopular`. **Son placeholders del sitio viejo, no el menú final** — se borrarán cuando el dueño defina el menú real (ver Pendiente).
+- `menuItem`: 20 documentos reales publicados (ver arriba). 1 marcado `isPopular`.
 - `blogPost`: 3 documentos publicados (historia, recetas, cultura)
 - `scheduleItem`: pendiente de contenido
-- Item de prueba "Plato de prueba" desactivado (`isActive: false`)
 
 **Vercel**
 - Proyecto bajo cuenta `holalacubanflavor@gmail.com` (migrado desde cuenta de desarrollador)
@@ -167,24 +184,31 @@ pedirlo al owner.
 **MCP servers scoped a este proyecto (sesión 2026-07-08/09)**
 - `mcp__supabase-holala__*` — SQL, deploy de Edge Functions, logs, advisors (Supabase project `rqpfqxmohdttghscoknh`)
 - `mcp__vercel-holala__*` — proyecto Vercel `holala/holala`, logueado y conectado
-- `mcp__sanity-holala__*` — cuenta `holalacubanflavor@gmail.com`, logueado y conectado
+- `mcp__sanity-holala__*` — cuenta `holalacubanflavor@gmail.com`, logueado y conectado (proyecto transferido a la org real del dueño en sesión 2026-07-12, ver detalle abajo)
 - Los tres en scope local (`claude mcp list -s local`) — privados a este proyecto, no afectan la cuenta digisenda global
 
 ### Pendiente / Próximas sesiones
 
-- **🔴 URGENTE — Menú real → Square → `products` (Sprint 4, bloqueado en dueño)**: el menú definitivo aún no está finalizado ni cargado en Square (el hardware ya lo tiene el dueño, falta el catálogo). Los ~17 `menuItem` en Sanity son placeholders del sitio viejo, no el menú final (ver nota de sesión 2026-07-08). Orden de trabajo una vez el dueño defina el menú:
-  1. Cargar el catálogo real en Square (fuente de verdad operativa: precios, catálogo).
-  2. Construir el sync Square catálogo → Supabase `products` (tabla ya existe con `food_cost`/`square_catalog_id`, hoy en 0 filas — sin esto no hay food cost/márgenes reales).
-  3. Borrar los `menuItem` placeholder en Sanity y cargar el menú real (marcar `isPopular` en algunos para que el home no quede vacío).
-  4. **Evaluar en ese momento** si vale la pena construir un sync automático Square↔Sanity (hoy no existe y no está planeado — son dos pipelines independientes; decisión pendiente de tomar cuando haya catálogo real con el que probarlo).
-- **Fotos del menú**: Ricardo sube imágenes desde Sanity Studio → aparecen automáticamente en tarjetas
-- **`scheduleItem`**: publicar horarios reales en Sanity para que aparezcan en el sitio
-- **`sanity schema deploy`**: falla con `missing grant deployStudio` — no bloquea (content API funciona), resolver via Sanity dashboard si se necesita Studio UI validation
-- **GA4**: verificar que `G-R0Q4D06G1F` está activo y recibiendo eventos en Vercel
-- **Leaked password protection**: desactivada en Supabase Auth — activar manualmente en dashboard (Settings → Auth → Password Security), no requiere código
-- **Impresora de recibos**: dueño evaluando compra — solo Star Micronics (recomendado: TSP143IV UE o mC-Print3) y Epson están certificados por Square; marcas genéricas (ej. "ERARROW") NO son compatibles con la app de Square aunque usen USB/BT/WiFi estándar
+- **Bebidas sin precio**: Jugos Naturales, Agua, Refrescos — confirmar precios con el dueño y cargarlas en Sanity + Square + `products` (mismo proceso que el resto del menú).
+- **Fotos del menú**: Ricardo sube imágenes desde Sanity Studio → aparecen automáticamente en tarjetas (aún sin imágenes ninguno de los 20 platos reales).
+- **`scheduleItem`**: publicar horarios reales en Sanity para que aparezcan en el sitio.
+- **`sanity schema deploy`**: sigue fallando con `missing grant deployStudio` — no bloquea (Content API funciona), pero el Studio no muestra las 4 categorías nuevas (`appetizers`/`tacos`/`sandwiches`/`seafood`) en su selector. Resolver via Sanity dashboard si Ricardo necesita agregar platos de esas categorías desde Studio.
+- **`food_cost`**: sigue en `NULL` para los 20 productos — el dueño tiene que cargarlo a mano (directo en Supabase o vía una UI futura) para que el food cost/márgenes real funcione. La tabla y el sync ya están listos para recibirlo.
+- **Bloqueador del navegador en `/admin` (sesión 2026-07-12)**: `/admin` carga en blanco en el Chrome normal del dueño (probado en varias cuentas/perfiles, cache limpio) pero funciona bien en incógnito y en pruebas automatizadas — apunta a una extensión de Chrome (ad-blocker o privacidad) interfiriendo. Pendiente que el dueño identifique cuál desactivando extensiones una por una.
+- **GA4**: verificar que `G-R0Q4D06G1F` está activo y recibiendo eventos en Vercel.
+- **Leaked password protection**: desactivada en Supabase Auth — activar manualmente en dashboard (Settings → Auth → Password Security), no requiere código.
+- **Impresora de recibos**: dueño evaluando compra — solo Star Micronics (recomendado: TSP143IV UE o mC-Print3) y Epson están certificados por Square; marcas genéricas (ej. "ERARROW") NO son compatibles con la app de Square aunque usen USB/BT/WiFi estándar.
+- **Evaluar sync automático Square↔Sanity**: hoy siguen siendo pipelines independientes sincronizados a mano por Claude/el dueño cuando el menú cambia. Con datos reales ya cargados en ambos lados, se puede evaluar si vale la pena automatizarlo (webhook `catalog.version.updated` de Square) si el menú empieza a cambiar seguido.
 
 ### Reglas Sanity aprendidas
 - `schema deploy` requiere grant `sanity.project/deployStudio` — puede fallar incluso para el owner; no bloquea la creación de contenido via Content API
 - Crear/publicar documentos via MCP (`create_documents` + `publish_documents`) funciona sin schema deployado
 - Secrets y tokens de Sanity: autenticado como `holalacubanflavor@gmail.com` (cuenta del cliente)
+- Transferir un proyecto entre organizaciones requiere ser Administrador en el proyecto **y en la organización de origen** — agregar a alguien como miembro del proyecto NO mueve el proyecto ni cambia quién lo factura. La transferencia real se hace desde `sanity.io/manage/project/<id>/settings`.
+- Si `mcp__sanity-holala__` da error de organización/proyecto no encontrado pese a tener membresía correcta, probar un ciclo completo de `/mcp` (limpiar auth → reconectar) para forzar un nuevo consentimiento OAuth — un simple "reconectar" no siempre refresca el scope de organización.
+- Hay un `SANITY_AUTH_TOKEN` (token personal, no OAuth) en `.claude/settings.local.json` que pega directo a `https://d082imwm.api.sanity.io/v2024-01-01/data/{query,mutate}/production` — útil como bypass cuando el MCP OAuth falla. Documentos creados con `_id` sin prefijo `drafts.` quedan publicados de inmediato (sin paso de publish aparte).
+
+### Reglas Square API aprendidas
+- El endpoint de `SearchCatalogObjects` es `POST /v2/catalog/search`, **no** `/v2/catalog/search-catalog-objects` — el nombre de la operación en la doc no coincide con la URL real. Un 404 "Resource not found" en la función de sync fue por este typo.
+- `catalog.batchUpsertCatalogObjects`: las referencias con id temporal (`#miId`) solo se resuelven **dentro del mismo batch**, no entre batches distintos de la misma request. Para crear categorías + ítems que las referencian: primero un request solo con las categorías, capturar los IDs reales de `id_mappings`, y usar esos IDs reales (no temporales) al crear los ítems en un request separado.
+- Edge Functions de Supabase con `verify_jwt: true` aceptan cualquier JWT válido firmado con el secret del proyecto — incluida la anon key pública, no solo tokens de sesión de usuarios logueados. Útil para probar una función por `curl`/PowerShell sin necesitar una sesión de navegador real.
