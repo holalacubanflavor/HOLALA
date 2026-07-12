@@ -44,3 +44,23 @@ export async function signOut() {
   revalidatePath('/admin', 'layout');
   redirect('/admin/login');
 }
+
+export async function syncMenuFromSquare() {
+  const supabase = await createClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) return { error: 'No autenticado.' };
+
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/square-catalog-sync`,
+    {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${session.access_token}` },
+    }
+  );
+
+  if (!res.ok) return { error: `Square respondió ${res.status}. Revisa los logs de la función.` };
+
+  const data = await res.json();
+  revalidatePath('/admin/dashboard');
+  return { synced: data.synced as number };
+}

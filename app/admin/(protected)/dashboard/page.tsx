@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import PeriodSelector from './PeriodSelector';
 import SalesTrendChart, { type TrendDay } from './SalesTrendChart';
+import MenuSyncButton from './MenuSyncButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -653,6 +654,7 @@ export default async function AdminDashboard({
         <div className="space-y-6">
           <TopItemsCard items={data.topItems} />
           <PaymentMethodsCard methods={data.paymentMethods} periodTotal={periodTotal} />
+          <MenuSyncButton />
         </div>
       </div>
 
