@@ -7,15 +7,13 @@ export default function AdminProtectedLayout({ children }: { children: React.Rea
     <div className="min-h-screen bg-cream">
       <header className="bg-espresso border-b border-espresso/80 px-6 py-3 flex items-center justify-between">
         <Link href="/admin/dashboard" className="flex items-center gap-3 shrink-0">
-          <span className="bg-cream rounded-full p-1.5 flex items-center justify-center shrink-0">
-            <Image
-              src="/logo/holala-logo.svg"
-              alt="HOLALA Cuban Flavor"
-              width={120}
-              height={120}
-              className="h-11 w-11"
-            />
-          </span>
+          <Image
+            src="/logo/holala-logo-official.png"
+            alt="HOLALA Cuban Flavor"
+            width={120}
+            height={120}
+            className="h-11 w-11 rounded-full shrink-0"
+          />
           <span className="font-display font-bold text-cream text-lg">Admin</span>
         </Link>
         <nav className="flex items-center gap-5 text-sm">

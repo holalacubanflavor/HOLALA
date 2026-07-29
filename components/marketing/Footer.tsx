@@ -27,11 +27,11 @@ export default function Footer() {
           {/* Brand */}
           <div className="space-y-4">
             <Image
-              src="/logo/holala-logo.svg"
+              src="/logo/holala-logo-official.png"
               alt="HOLALA Cuban Flavor"
               width={130}
-              height={44}
-              className="h-10 w-auto brightness-0 invert"
+              height={130}
+              className="h-12 w-12 rounded-full"
             />
             <p className="text-sm text-cream/60 leading-relaxed max-w-xs">
               Latin tropical street food experience — Cuban roots, modern flavor.
