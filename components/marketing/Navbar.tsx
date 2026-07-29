@@ -31,11 +31,11 @@ export default function Navbar() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 shrink-0">
             <Image
-              src="/logo/holala-logo.svg"
+              src="/logo/holala-logo-official.png"
               alt="HOLALA Cuban Flavor"
               width={120}
-              height={40}
-              className="h-9 w-auto"
+              height={120}
+              className="h-14 w-14 rounded-full"
               priority
             />
           </Link>

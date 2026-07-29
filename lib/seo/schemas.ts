@@ -73,7 +73,7 @@ export function blogPostSchema({
       name: 'HOLALA Cuban Flavor',
       logo: {
         '@type': 'ImageObject',
-        url: `${BASE_URL}/logo/holala-logo.svg`,
+        url: `${BASE_URL}/logo/holala-logo-official.png`,
       },
     },
     url,

@@ -95,11 +95,9 @@ function Hero() {
       {/* Framed brand cover — leads the section so the truck/brand is the first thing visitors see */}
       <div className="relative z-10 max-w-6xl mx-auto px-4">
         <div className="relative aspect-[4/3] sm:aspect-[16/9] lg:aspect-[21/9] rounded-3xl overflow-hidden ring-1 ring-cream/10 shadow-2xl shadow-black/40">
-          {/* AI-rendered concept of the trailer once vinyl-wrapped — the real trailer
-              is currently unbranded; swap for an actual photo once it's wrapped. */}
           <Image
-            src="/brand/hero-truck.png"
-            alt="HOLALA Cuban Flavor — food truck cubano-latino en San Antonio, TX"
+            src="/brand/hero-richard.png"
+            alt="Ricardo, dueño de HOLALA Cuban Flavor, sirviendo un plato en la ventanilla del food truck"
             fill
             priority
             sizes="(max-width: 1024px) 100vw, 1152px"
@@ -375,11 +373,11 @@ function AboutTeaser() {
             }}
           />
           <Image
-            src="/logo/holala-logo.svg"
+            src="/logo/holala-logo-official.png"
             alt="HOLALA Cuban Flavor"
             width={220}
-            height={74}
-            className="relative z-10 h-20 sm:h-24 w-auto"
+            height={220}
+            className="relative z-10 h-40 sm:h-48 w-auto rounded-full shadow-xl"
           />
         </div>
       </div>
