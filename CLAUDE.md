@@ -125,12 +125,12 @@ copia disponible — el contenido relevante ya quedó reflejado en las migracion
 de `supabase/migrations/` y en este archivo. Si se necesita el doc original,
 pedirlo al owner.
 
-## Estado del Proyecto (última actualización: 2026-07-12, sesión 18)
+## Estado del Proyecto (última actualización: 2026-07-28, sesión 19)
 
 ### Completado y en producción
 
 **Sitio público (`https://www.holalacubanflavor.com`)**
-- Home page: Hero, Hours strip, MenuPreview (Sanity), CateringCTA, About teaser, Instagram CTA
+- Home page: Hero (foto real del dueño en la ventanilla del truck, `public/brand/hero-richard.png` — reemplazó el render IA `hero-truck.png`, sesión 2026-07-28), Hours strip, MenuPreview (Sanity), CateringCTA, About teaser, Instagram CTA
 - Menú completo (`/es/menu`, `/en/menu`) — conectado a Sanity con fallback estático
 - Blog bilingüe (`/es/blog`, `/en/blog`) — 3 artículos publicados en Sanity
 - Formulario de catering 2 pasos → Supabase Edge Function → email via Resend
@@ -141,7 +141,7 @@ pedirlo al owner.
 - Dashboard: ventas en tiempo real desde Supabase (6 KPIs, period filter Hoy/Semana/Mes)
 - Sales trend chart: AreaChart 30 días (Recharts)
 - Pipeline de catering: leads desde Supabase, ordenados por fecha de evento
-- Logo HOLALA en el header del admin, con chip crema circular para contraste sobre el fondo espresso (sesión 2026-07-09) — el SVG del logo es un badge oscuro, sin fondo claro detrás se pierde visualmente
+- Logo HOLALA en el header del admin: el nuevo logo oficial (ver sesión 2026-07-28 abajo) ya trae su propio fondo circular ilustrado, así que el chip crema de contraste de la sesión 2026-07-09 se quitó (quedaba redundante/con doble borde)
 
 **Seguridad (endurecida sesión 2026-07-08)**
 - Middleware admin falla cerrado si faltan env vars de Supabase (antes dejaba pasar sin auth)
@@ -169,6 +169,13 @@ El dueño proveyó la foto del menú real (`menu holala.jpeg`, transcrito en `HO
 - `square-catalog-sync` tiene un mapa estático ES→EN (`EN_COPY` en el archivo de la función) porque Square no tiene campos bilingües — si se agrega un plato nuevo directo en Square sin actualizar ese mapa, el sitio le mostrará el nombre en español como si fuera el inglés hasta que se corrija.
 - El Studio de Sanity todavía no muestra las 4 categorías nuevas en su selector (el problema pre-existente de `sanity schema deploy` con el grant `deployStudio` sigue sin resolver) — la Content API y el sitio ya las usan bien, pero si Ricardo intenta agregar un plato nuevo desde Studio con una de esas categorías, no la va a ver en el picker.
 
+**Hero, ubicación y logo oficial (sesión 2026-07-28, PR #1 mergeado a main)**
+- **Hero de la home**: imagen reemplazada de `hero-truck.png` (render IA del trailer, nunca una foto real) a `hero-richard.png` — foto real del dueño entregando un plato en la ventanilla del truck al atardecer.
+- **Copy del headline** (`home.hero.headline` en `messages/{es,en}.json`): cambiado de la lista de platos ("Ropa vieja, lechón asado...") a un mensaje de marca ("Compartimos el auténtico sabor de nuestras raíces...").
+- **Ubicación mostrada junto al horario** (`home.hero.badge_areas` y `home.hours_section.areas`): cambiada de "Stone Oak · Alamo Heights · Downtown · Southtown" a **"Nacogdoches · Universal City · 73233"**. Nota: **73233 no es un código postal real de esa zona** (los de San Antonio/Universal City empiezan con 78, ej. 78233/78148) — quedó tal cual lo pidió el dueño, pendiente confirmar si fue un typo (ver Pendiente abajo). Las menciones más largas de "Stone Oak, Alamo Heights..." en el about/FAQ (`p3` y la respuesta de horarios) NO se tocaron — son oraciones descriptivas distintas del badge corto.
+- **Logo oficial**: el dueño proveyó `public/logo/LOGO FOOD TRUCK OK.png` (ilustración circular a color, 1254×1254, fondo con viñeta oscura) como el logo oficial, reemplazando `holala-logo.svg`. Copiado a `public/logo/holala-logo-official.png` (el nombre original con espacios rompe URLs de Next/Image). Desplegado en: Navbar (subido de 40px a 56px para más presencia), Footer (se quitó el filtro `brightness-0 invert`, ya no aplica porque el nuevo logo es a color), sección "Nuestra Historia" del home, header de `/admin` (se quitó el chip crema, ver arriba), y el JSON-LD de SEO (`lib/seo/schemas.ts`). `holala-logo.svg`/`.png`/`.webp` quedan en el repo sin uso en código, no se borraron.
+- `hero-truck.png` quedó en el repo sin ninguna referencia en código tras el reemplazo (`hero-cover.png` sí se sigue usando, solo en `SocialCTA` — no se tocó). Candidato a limpieza si se confirma que no se va a reusar.
+
 **Sanity — proyecto migrado de organización (sesión 2026-07-12)**
 El proyecto `d082imwm` vivía bajo la organización personal de digisenda (el desarrollador), nunca bajo la cuenta real del dueño — por eso `mcp__sanity-holala__` fallaba con errores de acceso/organización. Se transfirió a la organización real de Ricardo (`outmeacZe`, ligada a `holalacubanflavor@gmail.com`). Ojo: existe una organización *distinta* también llamada "Ricardo Pupo" (`oN5zwGS2F`) visible desde la cuenta de digisenda — es un duplicado/accidente, no confundir con la real (`outmeacZe`).
 
@@ -189,6 +196,8 @@ El proyecto `d082imwm` vivía bajo la organización personal de digisenda (el de
 
 ### Pendiente / Próximas sesiones
 
+- **Confirmar código postal 73233**: el dueño pidió este ZIP para el badge de ubicación (sesión 2026-07-28) pero no es un código real de la zona San Antonio/Universal City (esos empiezan con 78) — confirmar si fue un typo (¿78233? ¿78148?) antes de que quede publicado así por mucho tiempo.
+- **Limpieza de assets de logo/hero sin uso**: `holala-logo.svg/.png/.webp` y `hero-truck.png` ya no se referencian en código tras la sesión 2026-07-28 — borrar si se confirma que no se van a reusar.
 - **Bebidas sin precio**: Jugos Naturales, Agua, Refrescos — confirmar precios con el dueño y cargarlas en Sanity + Square + `products` (mismo proceso que el resto del menú).
 - **Fotos del menú**: Ricardo sube imágenes desde Sanity Studio → aparecen automáticamente en tarjetas (aún sin imágenes ninguno de los 20 platos reales).
 - **`scheduleItem`**: publicar horarios reales en Sanity para que aparezcan en el sitio.

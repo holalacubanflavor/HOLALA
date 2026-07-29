@@ -251,13 +251,17 @@ without discussing scope.
 
 ## 9. Imagery
 
-- Logo: `public/logo/holala-logo.svg` (preferred — also `.png`/`.webp`
-  fallbacks exist). On dark footer it's inverted via `brightness-0 invert`
-  rather than a separate light-mode asset.
-- Brand cover photo: `public/brand/hero-cover.png`, reused both as the
-  full Hero image and (cropped, low-opacity, dark-overlaid) as the
-  Instagram CTA section background — one asset, two treatments, rather than
-  sourcing a second photo.
+- Logo: `public/logo/holala-logo-official.png` — the owner-provided circular
+  badge illustration (updated 2026-07-28, replacing `holala-logo.svg`). It's a
+  full-color image with its own dark vignette background, so it's rendered
+  plain (no invert filter, no contrast chip) across navbar, footer, about
+  section, admin header, and SEO JSON-LD. The old `holala-logo.svg/.png/.webp`
+  remain in the repo unused.
+- Hero photo: `public/brand/hero-richard.png` — a real photo of the owner
+  handing a plate through the truck window at sunset (updated 2026-07-28,
+  replacing the AI-rendered `hero-truck.png` concept). `hero-cover.png` is a
+  separate, older brand illustration still used only as the low-opacity,
+  dark-overlaid background of the Instagram CTA section.
 - Menu item photos are optional (`imageUrl?`) — when absent, `MenuPreview`
   falls back to a teal-to-espresso gradient block with a centered translucent
   `UtensilsCrossed` icon rather than a broken image or empty space. Reuse this
