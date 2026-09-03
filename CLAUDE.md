@@ -125,7 +125,7 @@ copia disponible — el contenido relevante ya quedó reflejado en las migracion
 de `supabase/migrations/` y en este archivo. Si se necesita el doc original,
 pedirlo al owner.
 
-## Estado del Proyecto (última actualización: 2026-07-28, sesión 19)
+## Estado del Proyecto (última actualización: 2026-09-02, sesión 20)
 
 ### Completado y en producción
 
@@ -189,10 +189,16 @@ El proyecto `d082imwm` vivía bajo la organización personal de digisenda (el de
 - Variables de entorno configuradas: SUPABASE_URL, SUPABASE_ANON_KEY, SANITY_PROJECT_ID, SANITY_DATASET, GA4_MEASUREMENT_ID, SITE_URL
 
 **MCP servers scoped a este proyecto (sesión 2026-07-08/09)**
-- `mcp__supabase-holala__*` — SQL, deploy de Edge Functions, logs, advisors (Supabase project `rqpfqxmohdttghscoknh`)
+- `mcp__supabase-holala__*` — SQL, deploy de Edge Functions, logs, advisors (Supabase project `rqpfqxmohdttghscoknh`). **Roto desde al menos sesión 20**: falla con `CONNECTION_CLOSED` porque el binario instalado vía npx cache (`@supabase/mcp-server-supabase`) tira `ERR_MODULE_NOT_FOUND: @modelcontextprotocol/server` — instalación corrupta local, no un problema de auth/proyecto. Ver "Reglas Supabase aprendidas" abajo para el workaround.
 - `mcp__vercel-holala__*` — proyecto Vercel `holala/holala`, logueado y conectado
 - `mcp__sanity-holala__*` — cuenta `holalacubanflavor@gmail.com`, logueado y conectado (proyecto transferido a la org real del dueño en sesión 2026-07-12, ver detalle abajo)
 - Los tres en scope local (`claude mcp list -s local`) — privados a este proyecto, no afectan la cuenta digisenda global
+
+**Repo viejo `Digisenda/holala-web` eliminado + infraestructura de keep-alive de Supabase reparada (sesión 20, 2026-09-02)**
+- El repo predecesor `Digisenda/holala-web` (bajo la cuenta del desarrollador, previo al cutover a las cuentas del cliente) quedó completamente huérfano tras la migración: no era fork ni tenía forks, sin webhooks ni deploy keys, y ningún proyecto Vercel (ni en la cuenta `holala` ni en la cuenta personal de digisenda) lo tenía enlazado — confirmado vía `GET /v9/projects/{id}` de la API de Vercel, que muestra `link.org: holalacubanflavor, link.repo: HOLALA, productionBranch: main`. El dueño lo eliminó desde GitHub (Settings → Danger Zone) el mismo día.
+- Antes de borrarlo se detectó y arregló su workflow `.github/workflows/keep-supabase-alive.yml`, que **nunca había pasado un solo run** desde que existe (histórico revisado con `gh run list`): primero por secrets de GitHub inexistentes (6–19 jun), luego porque el ping consultaba `products` con la anon key y esa tabla tiene RLS que llama a `is_admin()` — revienta con 401 para peticiones anónimas sin importar si el proyecto está sano (19 jun–ago), y finalmente porque el proyecto de Supabase al que apuntaban esos secrets quedó pausado/abandonado tras el cutover (exit code 6, DNS no resuelve, desde ~16 ago). Se eliminó el archivo del repo antes de borrar el repo entero.
+- El mismo workflow, ya corregido, se recreó en el repo activo `holalacubanflavor/HOLALA`: el ping ahora pega a `/auth/v1/health` (devuelve 200 con cualquier apikey válida, sin tocar RLS) en vez de a una tabla. Se crearon los secrets `NEXT_PUBLIC_SUPABASE_URL`/`NEXT_PUBLIC_SUPABASE_ANON_KEY` en este repo (no existían) apuntando al proyecto Holala real. Probado con `workflow_dispatch` manual → 200, run exitoso.
+- Al revisar el proyecto Supabase `rqpfqxmohdttghscoknh` durante este trabajo se encontró **pausado** (`status: INACTIVE` vía Management API — justo la consecuencia de que el keep-alive llevaba semanas fallando sin pausar realmente nada, porque Supabase pausa por inactividad real de la DB, no por el resultado del workflow). Se reactivó con `POST /v1/projects/{ref}/restore` (Management API, usando el `SUPABASE_ACCESS_TOKEN` que ya vive en la config del MCP `supabase-holala`) → confirmado `ACTIVE_HEALTHY` unos minutos después.
 
 ### Pendiente / Próximas sesiones
 
@@ -207,6 +213,14 @@ El proyecto `d082imwm` vivía bajo la organización personal de digisenda (el de
 - **Leaked password protection**: desactivada en Supabase Auth — activar manualmente en dashboard (Settings → Auth → Password Security), no requiere código.
 - **Impresora de recibos**: dueño evaluando compra — solo Star Micronics (recomendado: TSP143IV UE o mC-Print3) y Epson están certificados por Square; marcas genéricas (ej. "ERARROW") NO son compatibles con la app de Square aunque usen USB/BT/WiFi estándar.
 - **Evaluar sync automático Square↔Sanity**: hoy siguen siendo pipelines independientes sincronizados a mano por Claude/el dueño cuando el menú cambia. Con datos reales ya cargados en ambos lados, se puede evaluar si vale la pena automatizarlo (webhook `catalog.version.updated` de Square) si el menú empieza a cambiar seguido.
+- **MCP `supabase-holala` roto localmente**: reinstalar (`claude mcp remove supabase-holala -s user` + volver a agregarlo, o reparar la caché de npx) — mientras tanto usar el workaround de Management API (ver "Reglas Supabase aprendidas").
+- **Keep-alive de Supabase**: el workflow ya funciona (ver arriba), pero corre cada 5 días vía cron de GitHub Actions — si el repo queda muy inactivo, GitHub puede deshabilitar workflows programados por su cuenta tras ~60 días sin actividad en el repo. Vigilar si el proyecto se vuelve a pausar pese al cron.
+
+### Reglas Supabase aprendidas
+- El proyecto Supabase se pausa (`status: INACTIVE`) tras ~7 días sin actividad real en el free tier — el DNS del subdominio (`<ref>.supabase.co`) deja de resolver por completo mientras está pausado, no solo devuelve error HTTP.
+- Reactivar/consultar estado sin depender del MCP: Management API directo con el `SUPABASE_ACCESS_TOKEN` de la cuenta Holala (el mismo que usa el MCP `supabase-holala`, visible con `claude mcp get supabase-holala`) —
+  `GET https://api.supabase.com/v1/projects/{ref}` para status, `POST https://api.supabase.com/v1/projects/{ref}/restore` para reactivar. Pasa de `INACTIVE` → `COMING_UP` → `ACTIVE_HEALTHY` en 1–3 min.
+- Para un health check "¿está vivo el proyecto?" **no** consultar una tabla de negocio (ej. `products`) con la anon key — si la tabla tiene RLS que llama a una función tipo `is_admin()`, revienta con 401 para peticiones anónimas aunque el proyecto esté perfectamente sano, dando un falso negativo permanente. Usar `GET {url}/auth/v1/health` (requiere header `apikey` pero cualquier key válida sirve, no evalúa RLS) — responde 200 mientras el proyecto esté activo, sin importar permisos de la tabla.
 
 ### Reglas Sanity aprendidas
 - `schema deploy` requiere grant `sanity.project/deployStudio` — puede fallar incluso para el owner; no bloquea la creación de contenido via Content API
