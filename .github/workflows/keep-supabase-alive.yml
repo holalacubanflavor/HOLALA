@@ -12,10 +12,13 @@ jobs:
     steps:
       - name: Ping Supabase
         run: |
+          # /auth/v1/health is a plain service health check — it returns 200 for
+          # any valid apikey and never touches table-level RLS, unlike querying
+          # a table (e.g. products), which can 401 on RLS even while the
+          # project is fully awake and healthy.
           STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
-            "${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}/rest/v1/products?select=id&limit=1" \
-            -H "apikey: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}" \
-            -H "Authorization: Bearer ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}")
+            "${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}/auth/v1/health" \
+            -H "apikey: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}")
           echo "Supabase ping status: $STATUS"
           if [ "$STATUS" != "200" ]; then
             echo "Warning: Supabase returned status $STATUS"
